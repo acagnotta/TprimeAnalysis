@@ -100,6 +100,10 @@ def make_stack_with_ratio(canv_name, histo_bkg_dict, histo_data=None, histo_sign
     
     
 
+    if systErr:
+        systErr_tag = "QCDScale"
+        
+
     ##### Set graphics style for Signals #####
     if histo_signals_dict is not None:
         for label, histo_signal in histo_signals_dict.items():
