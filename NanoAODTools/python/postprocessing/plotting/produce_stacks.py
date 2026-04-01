@@ -253,7 +253,7 @@ for v in vars:
                 tmp_                            = tmp.Rebin(len(MT_T_xbins)-1, histo_name+"_", MT_T_xbins)
                 tmp                             = copy.deepcopy(tmp_)
                 tmp.SetName(histo_name)
-            elif v._name == "PuppiMET_T1_pt_nominal":
+            elif v._name == "PuppiMET_T1_pt":#_nominal":
                 tmp_                            = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
                 tmp                             = copy.deepcopy(tmp_)
                 tmp.SetName(histo_name)
@@ -284,7 +284,7 @@ for v in vars:
                 tmp_                        = tmp.Rebin(len(MT_T_xbins)-1, histo_name+"_", MT_T_xbins)
                 tmp                         = copy.deepcopy(tmp_)
                 tmp.SetName(histo_name)
-            elif v._name == "PuppiMET_T1_pt_nominal":
+            elif v._name == "PuppiMET_T1_pt":#_nominal":
                 tmp_                        = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
                 tmp                         = copy.deepcopy(tmp_)
                 tmp.SetName(histo_name)
@@ -376,7 +376,7 @@ for v in vars:
                         tmp_                        = tmp.Rebin(len(MT_T_xbins)-1, histo_name+"_", MT_T_xbins)
                         tmp                         = copy.deepcopy(tmp_)
                         tmp.SetName(histo_name)
-                    elif v._name == "PuppiMET_T1_pt_nominal":
+                    elif v._name == "PuppiMET_T1_pt":#_nominal":
                         tmp_                        = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
                         tmp                         = copy.deepcopy(tmp_)
                         tmp.SetName(histo_name)
@@ -393,7 +393,6 @@ for v in vars:
 
         ##### Drawing Options ######
         if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]:
-        # if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop"]:
             # logy    = False
             logy    = False
         elif "SR" in r:
@@ -442,7 +441,8 @@ for v in vars:
             yMax            = yMax*1.6
             yMin            = yMin*0.5
         
-        if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]:
+        # if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]:
+        if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop"]:
             if r=="AH":
                 yMax        = 1300
                 yMin        = 0
