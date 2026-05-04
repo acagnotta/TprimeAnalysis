@@ -115,17 +115,20 @@ TrotaScaleFactor:
   outputfolder: { 
     "2022":         "",
     "2022EE":       "",
-    "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/",
+    "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_AllTopCat/",
     "2023postBPix": "",
     }
     
   fit_variable: {
-    "ResolvedLooseButNotTight":     "BestTopResolved_mass",
-    "ResolvedTight":                "BestTopResolved_mass",
+    "ResolvedLoose":                "MT_W",
+    "ResolvedLooseButNotTight":     "MT_W",
+    "ResolvedTight":                "MT_W",
+    "MixedLoose":                   "MT_W",
     "MixedLooseButNotTight":        "MT_W",
     "MixedTight":                   "MT_W",
-    "MergedLooseButNotTight":       "BestTopMerged_mass",
-    "MergedTight":                  "BestTopMerged_mass",
+    "MergedLoose":                  "MT_W",
+    "MergedLooseButNotTight":       "MT_W",
+    "MergedTight":                  "MT_W",
   }
  
 

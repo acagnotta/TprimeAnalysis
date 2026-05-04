@@ -24,7 +24,7 @@ region                  = opt.region
 outputfolder            = config["TrotaScaleFactor"]["outputfolder"][era]
 fit_variable            = config["TrotaScaleFactor"]["fit_variable"][region]
 workspaceFolder         = f"{outputfolder}/workspace_{region}/{fit_variable}"
-outFolder               = f"{outputfolder}/ScaleFactors_MT_W/"
+outFolder               = f"{outputfolder}/ScaleFactors/"
 
 if "Resolved" in region:
     cand                = "Resolved"
@@ -37,6 +37,8 @@ if "LooseButNotTight" in region:
     wp_cat              = "LooseButNotTight"
 elif "Tight" in region:
     wp_cat              = "Tight"
+elif "Loose" in region:
+    wp_cat              = "Loose"
 
 outName                 = f"TrotaScaleFactors_{wp_cat}"
 outJsonPath             = f"{outFolder}/{outName}.json"

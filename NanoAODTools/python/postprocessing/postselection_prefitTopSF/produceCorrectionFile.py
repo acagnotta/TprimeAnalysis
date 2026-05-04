@@ -1,8 +1,8 @@
 import json
 import correctionlib.schemav2 as cs
 
-inFilePath      = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_nobjetlep_inside_tophadr_using_tightbjet/ScaleFactors_MT_W/TrotaScaleFactors_Tight.json"
-outFilePath     = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_nobjetlep_inside_tophadr_using_tightbjet/ScaleFactors_MT_W/CorrLib_TrotaScaleFactors_Tight.json"
+inFilePath      = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/TrotaScaleFactors_LooseButNotTight.json"
+outFilePath     = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/CorrLib_TrotaScaleFactors_LooseButNotTight.json"
 with open(inFilePath, "r") as json_file:
     TrotaScaleFactors_dict = json.load(json_file)
 
