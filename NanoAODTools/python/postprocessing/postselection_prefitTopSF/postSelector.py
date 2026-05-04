@@ -42,8 +42,8 @@ noPuWeight              = opt.noPuWeight
 dict_samples_file       = opt.dict_samples_file
 hist_folder             = opt.hist_folder
 tmpfold                 = opt.tmpfold
-do_histos               = False
-do_snapshot             = True
+do_histos               = True
+do_snapshot             = False
 if do_variations:
     do_snapshot         = False
 remote_subfolder_name   = datetime.now().strftime("%Y%m%d") #20231229
@@ -91,6 +91,7 @@ branches = {
             # "TopGenTopPart_pt", "TopGenTopPart_eta", "TopGenTopPart_phi", "TopGenTopPart_mass",
             # "TopGenLep_idx", "TopGenLep_pt", "TopGenLep_eta", "TopGenLep_phi", "TopGenLep_mass",
             # "dR_bJet_GoodMuon", "bidx_bJet_GoodMuon", "midx_bJet_GoodMuon", "bJet_TopLep_idx", "mu_TopLep_idx"
+            "dR_muTopLep_bJetTopLep", "dPhi_muTopLep_MET", "dPhi_bJetTopLep_MET",
             "MT_W", "MT_lb", "MT_toplep",
             "TopLep_mass", "TopLep_pt" , "TopLep_mtw" , "TopLep_eta" , "TopLep_phi",
            }
@@ -392,11 +393,14 @@ def tag_toplep(df):
                     .Filter("nJetBtagTight>0",                                 "at least 1 tight b-tagged jet")
                     # .Filter("nJetBtagMedium>0",                                "at least 1 medium b-tagged jet")
 
-    df_toplep   = df_toplep.Define("dR_bJet_GoodMuon",                         "dR_bJets_to_GoodMuons_within_dRthr(TightMuon_idx, Muon_eta, Muon_phi, JetBTagTight_NotInsideBestTopMixed_NotInsideBestTopResolved_idx, Jet_eta, Jet_phi, 2.0)")\
-                           .Define("bidx_bJet_GoodMuon",                       "bidx_bJets_to_GoodMuons_within_dRthr(TightMuon_idx, Muon_eta, Muon_phi, JetBTagTight_NotInsideBestTopMixed_NotInsideBestTopResolved_idx, Jet_eta, Jet_phi, 2.0)")\
-                           .Define("midx_bJet_GoodMuon",                       "midx_bJets_to_GoodMuons_within_dRthr(TightMuon_idx, Muon_eta, Muon_phi, JetBTagTight_NotInsideBestTopMixed_NotInsideBestTopResolved_idx, Jet_eta, Jet_phi, 2.0)")\
+    df_toplep   = df_toplep.Define("dR_bJet_GoodMuon",                         "dR_bJets_to_GoodMuons_within_dRthr(TightMuon_idx, Muon_eta, Muon_phi, JetBTagTight_NotInsideBestTopMixed_NotInsideBestTopResolved_idx, Jet_eta, Jet_phi, 0.4, 2.0)")\
+                           .Define("bidx_bJet_GoodMuon",                       "bidx_bJets_to_GoodMuons_within_dRthr(TightMuon_idx, Muon_eta, Muon_phi, JetBTagTight_NotInsideBestTopMixed_NotInsideBestTopResolved_idx, Jet_eta, Jet_phi, 0.4, 2.0)")\
+                           .Define("midx_bJet_GoodMuon",                       "midx_bJets_to_GoodMuons_within_dRthr(TightMuon_idx, Muon_eta, Muon_phi, JetBTagTight_NotInsideBestTopMixed_NotInsideBestTopResolved_idx, Jet_eta, Jet_phi, 0.4, 2.0)")\
                            .Define("bJet_TopLep_idx",                          "dR_bJet_GoodMuon.size() > 0 ? bidx_bJet_GoodMuon[ArgMin(dR_bJet_GoodMuon)] : -1")\
                            .Define("mu_TopLep_idx",                            "dR_bJet_GoodMuon.size() > 0 ? midx_bJet_GoodMuon[ArgMin(dR_bJet_GoodMuon)] : -1")\
+                           .Define("dR_muTopLep_bJetTopLep",                   "dR_bJet_GoodMuon.size() > 0 ? deltaR(Muon_eta[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx]) : -1")\
+                           .Define("dPhi_muTopLep_MET",                        "dR_bJet_GoodMuon.size() > 0 ? deltaPhi(Muon_phi[mu_TopLep_idx], PuppiMET_T1_phi_nominal) : -1000")\
+                           .Define("dPhi_bJetTopLep_MET",                      "dR_bJet_GoodMuon.size() > 0 ? deltaPhi(Jet_phi[bJet_TopLep_idx], PuppiMET_T1_phi_nominal) : -1000")\
                            .Define("dR_bJetTopLep_BestTopResolved",            "dR_bJet_GoodMuon.size() > 0 ? deltaR(Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx], BestTopResolved_eta, BestTopResolved_phi) : -1")\
                            .Define("dR_bJetTopLep_BestTopMixed",               "dR_bJet_GoodMuon.size() > 0 ? deltaR(Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx], BestTopMixed_eta, BestTopMixed_phi) : -1")\
                            .Define("dR_bJetTopLep_BestTopMerged",              "dR_bJet_GoodMuon.size() > 0 ? deltaR(Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx], BestTopMerged_eta, BestTopMerged_phi) : -1")\

@@ -101,6 +101,9 @@ vars.append(variable(name = "nJetBtagTight",    title = "# b-Jet (T)",      nbin
 # vars.append(variable(name = "FatJet_particleNetWithMass_TvsQCD", title= "Top Score", nbins = 40, xmin = 0, xmax=1, noUnOvFlowbin = True))
 # vars.append(variable(name = "FatJet_msoftdrop_nominal", title= "FatJet m_{SD} [GeV]", nbins = 20, xmin = 70, xmax=110))
 
+vars.append(variable(name="dR_muTopLep_bJetTopLep",   title="dR(#muTopLep, bTopLep)",            nbins=20, xmin=0,          xmax=math.pi))
+vars.append(variable(name="dPhi_muTopLep_MET",        title="d#Phi(#muTopLep, MET)",             nbins=20, xmin=-math.pi,   xmax=math.pi,))
+vars.append(variable(name="dPhi_bJetTopLep_MET",      title="d#Phi(bTopLep, MET)",               nbins=20, xmin=-math.pi,   xmax=math.pi,))
 
 vars.append(variable(name="BestTopResolved_mass",     title="BestTopResolved mass [GeV]",        nbins=20, xmin=0,   xmax=1000, noUnOvFlowbin = True))
 vars.append(variable(name="BestTopMixed_mass",        title="BestTopMixed mass [GeV]",           nbins=20, xmin=0,   xmax=1000, noUnOvFlowbin = True))
@@ -111,6 +114,9 @@ vars.append(variable(name="MT_W",                     title="M^{W}_{T} [GeV]",  
 vars.append(variable(name="MT_lb",                    title="M^{lb}_{T} [GeV]",                  nbins=20, xmin=0,   xmax=500, noUnOvFlowbin = True))
 vars.append(variable(name="MT_toplep",                title="M^{TopLep}_{T} [GeV]",              nbins=20, xmin=0,   xmax=500, noUnOvFlowbin = True))
 
+vars.append(variable(name="TopLep_mass",              title="TopLep mass [GeV]",                 nbins=20, xmin=0,   xmax=1000, noUnOvFlowbin = True))
+vars.append(variable(name="TopLep_pt",                title="TopLep p_{T} [GeV]",                nbins=20, xmin=0,   xmax=1000, noUnOvFlowbin = True))
+vars.append(variable(name="TopLep_mtw",               title="TopLep mtw [GeV]",                  nbins=20, xmin=0,   xmax=1000, noUnOvFlowbin = True))
 
 ######## 1D variables for histos
 vars2D = []
