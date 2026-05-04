@@ -42,8 +42,8 @@ noPuWeight              = opt.noPuWeight
 dict_samples_file       = opt.dict_samples_file
 hist_folder             = opt.hist_folder
 tmpfold                 = opt.tmpfold
-do_histos               = True
-do_snapshot             = False
+do_histos               = False
+do_snapshot             = True
 if do_variations:
     do_snapshot         = False
 remote_subfolder_name   = datetime.now().strftime("%Y%m%d") #20231229
@@ -86,11 +86,13 @@ branches = {
             # "nJetBtagLoose", "nJetBtagMedium", "nJetBtagTight", "JetBTagLoose_idx", "JetBTagMedium_idx", "JetBTagTight_idx",
             # "nGoodJet", "GoodJet_idx", "nGoodFatJet", "GoodFatJet_idx",
             # "MT", "MT_T",
-            "GenPart_pdgId", "GenPart_genPartIdxMother", "GenPart_genPartIdxMother_prompt", "GenPart_statusFlags", "GenPart_pt",
-            "nTopGenHadr", "nTopGenLep", "w_topPt",
-            "TopGenTopPart_pt", "TopGenTopPart_eta", "TopGenTopPart_phi", "TopGenTopPart_mass",
+            # "GenPart_pdgId", "GenPart_genPartIdxMother", "GenPart_genPartIdxMother_prompt", "GenPart_statusFlags", "GenPart_pt",
+            # "nTopGenHadr", "nTopGenLep", "w_topPt",
+            # "TopGenTopPart_pt", "TopGenTopPart_eta", "TopGenTopPart_phi", "TopGenTopPart_mass",
             # "TopGenLep_idx", "TopGenLep_pt", "TopGenLep_eta", "TopGenLep_phi", "TopGenLep_mass",
             # "dR_bJet_GoodMuon", "bidx_bJet_GoodMuon", "midx_bJet_GoodMuon", "bJet_TopLep_idx", "mu_TopLep_idx"
+            "MT_W", "MT_lb", "MT_toplep",
+            "TopLep_mass", "TopLep_pt" , "TopLep_mtw" , "TopLep_eta" , "TopLep_phi",
            }
 
 #### LOAD utils/postselection.h ####
@@ -405,7 +407,27 @@ def tag_toplep(df):
                            .Define("W_phi",                                    "dR_bJet_GoodMuon.size() > 0 ? WtoLNu_phi(Muon_pt[mu_TopLep_idx], Muon_eta[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], Muon_mass[mu_TopLep_idx], PuppiMET_T1_pt_nominal, 0, PuppiMET_T1_phi_nominal, 0) : -1000")\
                            .Define("MT_W",                                     "dR_bJet_GoodMuon.size() > 0 ? TransverseMass_part1part2(Muon_pt[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], PuppiMET_T1_pt_nominal, PuppiMET_T1_phi_nominal) : -1000")\
                            .Define("MT_lb",                                    "dR_bJet_GoodMuon.size() > 0 ? TransverseMass_part1part2(Muon_pt[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], Jet_pt[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx]) : -1000")\
-                           .Define("MT_toplep",                                "dR_bJet_GoodMuon.size() > 0 ? TransverseMass_part1part2(W_pt, W_phi, Jet_pt[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx]) : -1000")
+                           .Define("MT_toplep",                                "dR_bJet_GoodMuon.size() > 0 ? TransverseMass_part1part2(W_pt, W_phi, Jet_pt[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx]) : -1000")\
+                           .Define("TopLep_mass",                              "dR_bJet_GoodMuon.size() > 0 ? TopReco::TopMassFromPtEtaPhiM("
+                                                                                                              "Muon_pt[mu_TopLep_idx], Muon_eta[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], Muon_mass[mu_TopLep_idx], "
+                                                                                                              "Jet_pt[bJet_TopLep_idx], Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx], Jet_mass[bJet_TopLep_idx], "
+                                                                                                              "PuppiMET_T1_pt_nominal, PuppiMET_T1_phi_nominal) : -1000")\
+                           .Define("TopLep_pt",                                "dR_bJet_GoodMuon.size() > 0 ? TopReco::TopPtFromPtEtaPhiM("                                                                                   
+                                                                                                              "Muon_pt[mu_TopLep_idx], Muon_eta[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], Muon_mass[mu_TopLep_idx], "
+                                                                                                              "Jet_pt[bJet_TopLep_idx], Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx], Jet_mass[bJet_TopLep_idx], "
+                                                                                                              "PuppiMET_T1_pt_nominal, PuppiMET_T1_phi_nominal) : -1000")\
+                           .Define("TopLep_mtw",                               "dR_bJet_GoodMuon.size() > 0 ? TopReco::TopMtwFromPtEtaPhiM("                                                                                   
+                                                                                                              "Muon_pt[mu_TopLep_idx], Muon_eta[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], Muon_mass[mu_TopLep_idx], "
+                                                                                                              "Jet_pt[bJet_TopLep_idx], Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx], Jet_mass[bJet_TopLep_idx], "
+                                                                                                              "PuppiMET_T1_pt_nominal, PuppiMET_T1_phi_nominal) : -1000")\
+                           .Define("TopLep_eta",                               "dR_bJet_GoodMuon.size() > 0 ? TopReco::TopEtaFromPtEtaPhiM("                                                                                   
+                                                                                                              "Muon_pt[mu_TopLep_idx], Muon_eta[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], Muon_mass[mu_TopLep_idx], "
+                                                                                                              "Jet_pt[bJet_TopLep_idx], Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx], Jet_mass[bJet_TopLep_idx], "
+                                                                                                              "PuppiMET_T1_pt_nominal, PuppiMET_T1_phi_nominal) : -1000")\
+                           .Define("TopLep_phi",                               "dR_bJet_GoodMuon.size() > 0 ? TopReco::TopPhiFromPtEtaPhiM("                                                                                   
+                                                                                                              "Muon_pt[mu_TopLep_idx], Muon_eta[mu_TopLep_idx], Muon_phi[mu_TopLep_idx], Muon_mass[mu_TopLep_idx], "
+                                                                                                              "Jet_pt[bJet_TopLep_idx], Jet_eta[bJet_TopLep_idx], Jet_phi[bJet_TopLep_idx], Jet_mass[bJet_TopLep_idx], "
+                                                                                                              "PuppiMET_T1_pt_nominal, PuppiMET_T1_phi_nominal) : -1000")
     return df_toplep
 
 
@@ -683,7 +705,7 @@ for d in datasets:
                 os.makedirs(repohisto_tmp)
             outfilePath     = repohisto_tmp+s.label+'.root'
         else:
-            outfilePath     = repohisto_tmp+s.label+'.root'
+            outfilePath     = repohisto+s.label+'.root'
             
         outfilePath_dict[s.label] = outfilePath
 

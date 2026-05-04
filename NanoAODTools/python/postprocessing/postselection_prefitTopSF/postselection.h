@@ -12,8 +12,12 @@
 #include "TStyle.h"
 #include <map>
 #include "correction.h"
-
 #include "TDavixFile.h"
+#include <vector>
+#include <complex>
+#include <cmath>
+#include <algorithm>
+#include "TLorentzVector.h"
 
 using namespace ROOT::VecOps;
 using RNode = ROOT::RDF::RNode;
@@ -1981,4 +1985,271 @@ float topPtReweighting(float top_pt, float antitop_pt)
   float m = -0.0005;
   float w = sqrt(exp(m*top_pt + q) * exp(m*antitop_pt + q));
   return w;
-}  
+}
+
+
+
+
+
+namespace TopReco {
+
+template <typename T>
+inline std::vector<T> EquationSolver(const T& a, const T& b, const T& c, const T& d)
+{
+    std::vector<T> result;
+    if (a == T(0)) return result;
+
+    std::complex<T> x1, x2, x3;
+    const T q = (T(3)*a*c - b*b) / (T(9)*a*a);
+    const T r = (T(9)*a*b*c - T(27)*a*a*d - T(2)*b*b*b) / (T(54)*a*a*a);
+    const T Delta = q*q*q + r*r;
+
+    std::complex<T> s, t;
+    if (Delta <= T(0)) {
+        const T rho = std::sqrt(-(q*q*q));
+        const T theta = std::acos(r / rho);
+        s = std::polar(std::sqrt(-q),  theta / T(3));
+        t = std::polar(std::sqrt(-q), -theta / T(3));
+    } else {
+        s = std::complex<T>(std::cbrt(r + std::sqrt(Delta)), 0);
+        t = std::complex<T>(std::cbrt(r - std::sqrt(Delta)), 0);
+    }
+
+    const std::complex<T> I(0, 1);
+
+    x1 = s + t - std::complex<T>(b / (T(3)*a), 0);
+    x2 = (s + t) * std::complex<T>(-0.5, 0)
+       - std::complex<T>(b / (T(3)*a), 0)
+       + (s - t) * I * std::complex<T>(std::sqrt(T(3)) / T(2), 0);
+    x3 = (s + t) * std::complex<T>(-0.5, 0)
+       - std::complex<T>(b / (T(3)*a), 0)
+       - (s - t) * I * std::complex<T>(std::sqrt(T(3)) / T(2), 0);
+
+    if (std::abs(x1.imag()) < T(1e-4)) result.push_back(x1.real());
+    if (std::abs(x2.imag()) < T(1e-4)) result.push_back(x2.real());
+    if (std::abs(x3.imag()) < T(1e-4)) result.push_back(x3.real());
+
+    return result;
+}
+
+inline ROOT::Math::PxPyPzEVector MakeP4(float pt, float eta, float phi, float mass)
+{
+    ROOT::Math::PtEtaPhiMVector v(pt, eta, phi, mass);
+    return ROOT::Math::PxPyPzEVector(v.Px(), v.Py(), v.Pz(), v.E());
+}
+
+inline ROOT::Math::PxPyPzEVector NuMomentum(
+    float leptonPx, float leptonPy, float leptonPz,
+    float leptonPt, float leptonE,
+    float metPx, float metPy)
+{
+    constexpr double mW = 80.399;
+    ROOT::Math::PxPyPzEVector result(0., 0., 0., 0.);
+
+    const double misET2 = metPx*metPx + metPy*metPy;
+    const double denom  = leptonE*leptonE - leptonPz*leptonPz;
+
+    if (std::abs(denom) < 1e-9) return result;
+    if (std::abs(leptonPt) < 1e-9) return result;
+    if (std::abs(leptonPx) < 1e-9) return result;
+
+    const double mu = (mW*mW)/2. + metPx*leptonPx + metPy*leptonPy;
+    const double a  = (mu * leptonPz) / denom;
+    const double a2 = a*a;
+    const double b  = ((leptonE*leptonE)*misET2 - mu*mu) / denom;
+
+    double pznu = 0.;
+
+    if (a2 - b > 0.) {
+        const double root = std::sqrt(a2 - b);
+        const double pz1  = a + root;
+        const double pz2  = a - root;
+        pznu = (std::abs(pz1) < std::abs(pz2)) ? pz1 : pz2;
+
+        const double Enu = std::sqrt(misET2 + pznu*pznu);
+        result = ROOT::Math::PxPyPzEVector(metPx, metPy, pznu, Enu);
+        return result;
+    }
+
+    const double ptlep = leptonPt;
+    const double pxlep = leptonPx;
+    const double pylep = leptonPy;
+    const double metpx = metPx;
+    const double metpy = metPy;
+
+    const double EquationA = 1.;
+    const double EquationB = -3. * pylep * mW / ptlep;
+    const double EquationC =
+        mW*mW * (2. * pylep*pylep) / (ptlep*ptlep)
+        + mW*mW
+        - 4. * pxlep*pxlep*pxlep * metpx / (ptlep*ptlep)
+        - 4. * pxlep*pxlep*pylep * metpy / (ptlep*ptlep);
+    const double EquationD =
+        4. * pxlep*pxlep * mW * metpy / ptlep
+        - pylep * mW*mW*mW / ptlep;
+
+    const auto solutions  = EquationSolver<long double>(
+        (long double)EquationA, (long double)EquationB,
+        (long double)EquationC, (long double)EquationD
+    );
+    const auto solutions2 = EquationSolver<long double>(
+        (long double)EquationA, -(long double)EquationB,
+        (long double)EquationC, -(long double)EquationD
+    );
+
+    double deltaMin = 14000. * 14000.;
+    const double zeroValue = -mW*mW / (4. * pxlep);
+    double minPx = 0.;
+    double minPy = 0.;
+
+    for (int i = 0; i < (int)solutions.size(); ++i) {
+        if (solutions[i] < 0.) continue;
+
+        const double p_x = (solutions[i]*solutions[i] - mW*mW) / (4. * pxlep);
+        const double p_y = (mW*mW*pylep + 2.*pxlep*pylep*p_x - mW*ptlep*solutions[i])
+                         / (2. * pxlep * pxlep);
+        const double Delta2 = (p_x - metpx)*(p_x - metpx) + (p_y - metpy)*(p_y - metpy);
+
+        if (Delta2 < deltaMin && Delta2 > 0.) {
+            deltaMin = Delta2;
+            minPx = p_x;
+            minPy = p_y;
+        }
+    }
+
+    for (int i = 0; i < (int)solutions2.size(); ++i) {
+        if (solutions2[i] < 0.) continue;
+
+        const double p_x = (solutions2[i]*solutions2[i] - mW*mW) / (4. * pxlep);
+        const double p_y = (mW*mW*pylep + 2.*pxlep*pylep*p_x + mW*ptlep*solutions2[i])
+                         / (2. * pxlep * pxlep);
+        const double Delta2 = (p_x - metpx)*(p_x - metpx) + (p_y - metpy)*(p_y - metpy);
+
+        if (Delta2 < deltaMin && Delta2 > 0.) {
+            deltaMin = Delta2;
+            minPx = p_x;
+            minPy = p_y;
+        }
+    }
+
+    const double pyZeroValue    = (mW*mW*pxlep + 2.*pxlep*pylep*zeroValue);
+    const double delta2ZeroValue =
+        (zeroValue - metpx)*(zeroValue - metpx) +
+        (pyZeroValue - metpy)*(pyZeroValue - metpy);
+
+    if (deltaMin == 14000. * 14000.) return result;
+
+    if (delta2ZeroValue < deltaMin) {
+        minPx = zeroValue;
+        minPy = pyZeroValue;
+    }
+
+    const double muMinimum = (mW*mW)/2. + minPx*pxlep + minPy*pylep;
+    pznu = (muMinimum * leptonPz) / denom;
+
+    const double Enu = std::sqrt(minPx*minPx + minPy*minPy + pznu*pznu);
+    result = ROOT::Math::PxPyPzEVector(minPx, minPy, pznu, Enu);
+    return result;
+}
+
+inline ROOT::Math::PxPyPzEVector Top4Momentum(
+    float leptonPx, float leptonPy, float leptonPz, float leptonE,
+    float jetPx, float jetPy, float jetPz, float jetE,
+    float metPx, float metPy)
+{
+    const float leptonPt = std::hypot(leptonPx, leptonPy);
+    const auto nu  = NuMomentum(leptonPx, leptonPy, leptonPz, leptonPt, leptonE, metPx, metPy);
+    const ROOT::Math::PxPyPzEVector lep(leptonPx, leptonPy, leptonPz, leptonE);
+    const ROOT::Math::PxPyPzEVector jet(jetPx, jetPy, jetPz, jetE);
+    return lep + jet + nu;
+}
+
+inline ROOT::Math::PxPyPzEVector Top4MomentumFromPtEtaPhiM(
+    float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass,
+    float jet_pt,    float jet_eta,    float jet_phi,    float jet_mass,
+    float met_pt,    float met_phi)
+{
+    const auto lep = MakeP4(lepton_pt, lepton_eta, lepton_phi, lepton_mass);
+    const auto jet = MakeP4(jet_pt,    jet_eta,    jet_phi,    jet_mass);
+
+    const float metPx = met_pt * std::cos(met_phi);
+    const float metPy = met_pt * std::sin(met_phi);
+
+    return Top4Momentum(
+        lep.Px(), lep.Py(), lep.Pz(), lep.E(),
+        jet.Px(), jet.Py(), jet.Pz(), jet.E(),
+        metPx, metPy
+    );
+}
+
+inline float TopMassFromPtEtaPhiM(
+    float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass,
+    float jet_pt,    float jet_eta,    float jet_phi,    float jet_mass,
+    float met_pt,    float met_phi)
+{
+    return Top4MomentumFromPtEtaPhiM(
+        lepton_pt, lepton_eta, lepton_phi, lepton_mass,
+        jet_pt, jet_eta, jet_phi, jet_mass,
+        met_pt, met_phi
+    ).M();
+}
+
+inline float TopPtFromPtEtaPhiM(
+    float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass,
+    float jet_pt,    float jet_eta,    float jet_phi,    float jet_mass,
+    float met_pt,    float met_phi)
+{
+    return Top4MomentumFromPtEtaPhiM(
+        lepton_pt, lepton_eta, lepton_phi, lepton_mass,
+        jet_pt, jet_eta, jet_phi, jet_mass,
+        met_pt, met_phi
+    ).Pt();
+}
+
+inline float TopMtwFromPtEtaPhiM(
+    float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass,
+    float jet_pt,    float jet_eta,    float jet_phi,    float jet_mass,
+    float met_pt,    float met_phi)
+{
+    const auto lep = MakeP4(lepton_pt, lepton_eta, lepton_phi, lepton_mass);
+    const auto jet = MakeP4(jet_pt,    jet_eta,    jet_phi,    jet_mass);
+
+    const float metPx = met_pt * std::cos(met_phi);
+    const float metPy = met_pt * std::sin(met_phi);
+
+    const auto lb  = lep + jet;
+    const double mlb2  = lb.M2();
+    const double etlb  = std::sqrt(std::max(0.0, mlb2 + lb.Pt()*lb.Pt()));
+    const double metPT = std::hypot(metPx, metPy);
+
+    return std::sqrt(std::max(
+        0.0,
+        mlb2 + 2.0 * (etlb * metPT - lb.Px() * metPx - lb.Py() * metPy)
+    ));
+}
+
+float TopEtaFromPtEtaPhiM(
+    float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass,
+    float jet_pt,    float jet_eta,    float jet_phi,    float jet_mass,
+    float met_pt,    float met_phi)
+{
+    return Top4MomentumFromPtEtaPhiM(
+        lepton_pt, lepton_eta, lepton_phi, lepton_mass,
+        jet_pt, jet_eta, jet_phi, jet_mass,
+        met_pt, met_phi
+    ).Eta();
+}
+
+float TopPhiFromPtEtaPhiM(
+    float lepton_pt, float lepton_eta, float lepton_phi, float lepton_mass,
+    float jet_pt,    float jet_eta,    float jet_phi,    float jet_mass,
+    float met_pt,    float met_phi)
+{
+    return Top4MomentumFromPtEtaPhiM(
+        lepton_pt, lepton_eta, lepton_phi, lepton_mass,
+        jet_pt, jet_eta, jet_phi, jet_mass,
+        met_pt, met_phi
+    ).Phi();
+}
+
+} // namespace TopReco
