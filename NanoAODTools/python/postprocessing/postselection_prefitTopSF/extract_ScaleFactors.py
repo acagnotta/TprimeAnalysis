@@ -3,6 +3,7 @@ import os
 import json
 import yaml
 import optparse
+import math
 
 config = {}
 config_paths = os.environ.get('PWD')+'/../config/config.yaml'
@@ -23,7 +24,6 @@ era                     = opt.era
 region                  = opt.region
 outputfolder            = config["TrotaScaleFactor"]["outputfolder"][era]
 fit_variable            = config["TrotaScaleFactor"]["fit_variable"][region]
-workspaceFolder         = f"{outputfolder}/workspace_{region}/{fit_variable}"
 outFolder               = f"{outputfolder}/ScaleFactors/"
 
 if "Resolved" in region:
@@ -40,7 +40,7 @@ elif "Tight" in region:
 elif "Loose" in region:
     wp_cat              = "Loose"
 
-outName                 = f"TrotaScaleFactors_{wp_cat}"
+outName                 = f"TrotaScaleFactors_{era}"
 outJsonPath             = f"{outFolder}/{outName}.json"
 
 categories              = ["topmatched", "nonmatched", "other"]
@@ -48,6 +48,8 @@ event_categories        = ["pt0to200", "pt200to400", "pt400to600", "pt600to1000"
 
 if not os.path.exists(outFolder):
     os.makedirs(outFolder)
+
+
 if os.path.exists(outJsonPath):
     print(f"Output file {outJsonPath} already exists. Retrieving existing results.")
     with open(outJsonPath, "r") as json_file:
@@ -55,75 +57,122 @@ if os.path.exists(outJsonPath):
 else:
     print(f"Output file {outJsonPath} does not exist. Extracting scale factors from fit results.")
     sf_dict         = {}
-
-if era in sf_dict:
-    print(f"Era {era} already exists in the results. Overwriting existing scale factors for this era.")
-else:
-    sf_dict[era]        = {}
-if cand in sf_dict[era]:
+if cand in sf_dict:
     print(f"Candidate {cand} already exists in the results for era {era}. Overwriting existing scale factors for this candidate.")
 else:    
-    sf_dict[era][cand]  = {}
+    sf_dict[cand]               = {}
+if wp_cat in sf_dict[cand]:
+    print(f"Working point category {wp_cat} already exists in the results for candidate {cand} and era {era}. Overwriting existing scale factors for this working point category.")
+else:
+    sf_dict[cand][wp_cat]       = {}
+
 
 
 for cat in categories:
-    poi                     = f"SF_{cat}"
-    sf_dict[era][cand][cat] = {}
-    sf_dict[era][cand][cat]["pass"] = {
+    poi                         = f"SF_{cat}"
+    sf_dict[cand][wp_cat][cat]  = {}
+    sf_dict[cand][wp_cat][cat]["pass"] = {
                                         "value": [],
                                         "error": []
                                     }
-    sf_dict[era][cand][cat]["fail"] = {
+    sf_dict[cand][wp_cat][cat]["fail"] = {
                                         "value": [],
                                         "error": []
                                     }
-    for evcat in event_categories:
-        print(f"\nExtracting scale factors for event category: {evcat}")
-        inFilePath      = f"{workspaceFolder}/fitDiagnostics_{evcat}.root"
-        file            = ROOT.TFile.Open(inFilePath, "READ")
-        fit             = file.Get("fit_s")                             # get the signal+background fit
-        norm_prefit     = file.Get("norm_prefit")
-        # fit.Print("v")
+    if wp_cat in ["Loose", "Tight"]:
+        for evcat in event_categories:
+            print(f"\nExtracting scale factors for event category: {evcat}")
+            workspaceFolder = f"{outputfolder}/workspace_{region}/{fit_variable}"
+            inFilePath      = f"{workspaceFolder}/fitDiagnostics_{evcat}.root"
+            file            = ROOT.TFile.Open(inFilePath, "READ")
+            fit             = file.Get("fit_s")                             # get the signal+background fit
+            norm_prefit     = file.Get("norm_prefit")                       # prefit shapes/yields
+            # fit.Print("v")
 
-        sf              = fit.floatParsFinal().find(poi)
-        total_data      = 0.0                                           # retrieve total DATA yield from the prefit shapes
-        for channel in ["pass", "fail"]:
-            data_graph  = file.Get(f"shapes_prefit/{channel}/data")
-            dataY       = [data_graph.GetY()[i] for i in range(data_graph.GetN())]
-            total_data  += sum(dataY)
-        
-        norm_factor     = fit.constPars().find("norm_match_mc_data")    # frozen rate parameter used to match the total MC yield to data
-        if norm_factor:
-            norm_factor_val = norm_factor.getVal()
-            norm_factor_err = 0.0
-        else:
-            None
+            sf              = fit.floatParsFinal().find(poi)
+            total_data      = 0.0                                           # retrieve total DATA yield from the prefit shapes
+            for channel in ["pass", "fail"]:
+                data_graph  = file.Get(f"shapes_prefit/{channel}/data")
+                dataY       = [data_graph.GetY()[i] for i in range(data_graph.GetN())]
+                total_data  += sum(dataY)
+            
+            norm_factor     = fit.constPars().find("norm_match_mc_data")    # frozen rate parameter used to match the total MC yield to data
+            if norm_factor:
+                norm_factor_val = norm_factor.getVal()
+                norm_factor_err = 0.0
+            else:
+                None
 
-        ###############
-        ### SF_pass ###
-        ###############
-        if sf:
-            sf_pass_value = sf.getVal()
-            sf_pass_error = sf.getError()
-            sf_dict[era][cand][cat]["pass"]["value"].append(sf_pass_value)
-            sf_dict[era][cand][cat]["pass"]["error"].append(sf_pass_error)
-            print(f"{poi} \t\t= {sf_pass_value:.4f} ± {sf_pass_error:.4f}")
-        else:
-            print(f"{poi} not found in RooFitResult")
+            ###############
+            ### SF_pass ###
+            ###############
+            if sf:
+                sf_pass_value = sf.getVal()
+                sf_pass_error = sf.getError()
+                sf_dict[cand][wp_cat][cat]["pass"]["value"].append(sf_pass_value)
+                sf_dict[cand][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
+                print(f"{poi} \t\t= {sf_pass_value:.4f} ± {sf_pass_error:.4f}")
+            else:
+                print(f"{poi} not found in RooFitResult")
 
-        ###############
-        ### SF_fail ###
-        ###############
-        if sf:   
-            norm_prefit_pass = norm_prefit.find(f"pass/{cat}").getVal()
-            norm_prefit_fail = norm_prefit.find(f"fail/{cat}").getVal()
-            print(f"Calculating w_fail for {evcat} using the relation:      w_fail = SF_fail    = 1 + (1 - SF_pass) * (norm_prefit_pass / norm_prefit_fail)")
-            print(f"with error:                                             sigma_fail          = sigma_pass * (norm_prefit_pass / norm_prefit_fail)")
-            print(f"where                                                   w_pass = SF_pass    = {sf_pass_value:.4f} ± {sf_pass_error:.4f}, norm_prefit_pass = {norm_prefit_pass:.4f}, norm_prefit_fail = {norm_prefit_fail:.4f}")
-            sf_dict[era][cand][cat]["fail"]["value"].append(1 + (1 - sf_pass_value) * (norm_prefit_pass / norm_prefit_fail))
-            sf_dict[era][cand][cat]["fail"]["error"].append(sf_pass_error * (norm_prefit_pass / norm_prefit_fail))
-        else:
-            print(f"{poi} not found in RooFitResult")
+            ###############
+            ### SF_fail ###
+            ###############
+            if sf:   
+                norm_prefit_pass = norm_prefit.find(f"pass/{cat}").getVal()
+                norm_prefit_fail = norm_prefit.find(f"fail/{cat}").getVal()
+                print(f"Calculating w_fail for {evcat} using the relation:      w_fail = SF_fail    = 1 + (1 - SF_pass) * (norm_prefit_pass / norm_prefit_fail)")
+                print(f"with error:                                             sigma_fail          = sigma_pass * (norm_prefit_pass / norm_prefit_fail)")
+                print(f"where                                                   w_pass = SF_pass    = {sf_pass_value:.4f} ± {sf_pass_error:.4f}, norm_prefit_pass = {norm_prefit_pass:.4f}, norm_prefit_fail = {norm_prefit_fail:.4f}")
+                sf_dict[cand][wp_cat][cat]["fail"]["value"].append(1 + (1 - sf_pass_value) * (norm_prefit_pass / norm_prefit_fail))
+                sf_dict[cand][wp_cat][cat]["fail"]["error"].append(sf_pass_error * (norm_prefit_pass / norm_prefit_fail))
+            else:
+                print(f"{poi} not found in RooFitResult")
+
+    elif wp_cat in ["LooseButNotTight"]:
+        for evcat in event_categories:
+            print(f"\nExtracting scale factors for event category: {evcat}")
+            workspaceFolder_Tight   = f"{outputfolder}/workspace_{cand}Tight/{fit_variable}"
+            inFilePath_Tight        = f"{workspaceFolder_Tight}/fitDiagnostics_{evcat}.root"
+            fileTight               = ROOT.TFile.Open(inFilePath_Tight, "READ")
+            fitTight                = fileTight.Get("fit_s")                             # get the signal+background fit
+            norm_prefit_Tight       = fileTight.Get("norm_prefit")                       # prefit shapes/yields
+            workspaceFolder_Loose   = f"{outputfolder}/workspace_{cand}Loose/{fit_variable}"
+            inFilePath_Loose        = f"{workspaceFolder_Loose}/fitDiagnostics_{evcat}.root"
+            fileLoose               = ROOT.TFile.Open(inFilePath_Loose, "READ")
+            fitLoose                = fileLoose.Get("fit_s")                             # get the signal+background fit
+            norm_prefit_Loose       = fileLoose.Get("norm_prefit")                       # prefit shapes/yields
+
+            sf_Tight                = fitTight.floatParsFinal().find(poi)
+            sf_Loose                = fitLoose.floatParsFinal().find(poi)
+
+            ###############
+            ### SF_pass ###
+            ###############
+            if sf_Tight and sf_Loose:
+                sf_Tight_pass_value = sf_Tight.getVal()
+                sf_Tight_pass_error = sf_Tight.getError()
+                sf_Loose_pass_value = sf_Loose.getVal()
+                sf_Loose_pass_error = sf_Loose.getError()
+
+                norm_prefit_pass_Tight = norm_prefit_Tight.find(f"pass/{cat}").getVal()
+                norm_prefit_fail_Tight = norm_prefit_Tight.find(f"fail/{cat}").getVal()
+                norm_prefit_pass_Loose = norm_prefit_Loose.find(f"pass/{cat}").getVal()
+                norm_prefit_fail_Loose = norm_prefit_Loose.find(f"fail/{cat}").getVal()
+
+                sf_pass_value          = (sf_Loose_pass_value * norm_prefit_pass_Loose - sf_Tight_pass_value * norm_prefit_pass_Tight) / (norm_prefit_pass_Loose - norm_prefit_pass_Tight)
+                sf_pass_error          = math.sqrt((sf_Loose_pass_error * norm_prefit_pass_Loose)**2 + (sf_Tight_pass_error * norm_prefit_pass_Tight)**2) / abs(norm_prefit_pass_Loose - norm_prefit_pass_Tight)
+                sf_dict[cand][wp_cat][cat]["pass"]["value"].append(sf_pass_value if sf_pass_value > 0 else 1.0)  # if the calculated SF_pass is negative, set it to 1 (no correction), according to BTV recommendations: https://btv-wiki.docs.cern.ch/PerformanceCalibration/fixedWPSFRecommendations/#scale-factor-recommendations-for-event-reweighting
+                sf_dict[cand][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
+                print(f"{poi} \t\t= {sf_pass_value:.4f} ± {sf_pass_error:.4f}")
+            else:
+                print(f"{poi} not found in RooFitResult for either Tight or Loose fit")
+
+            ###############
+            ### SF_fail ###
+            ###############
+            sf_dict[cand][wp_cat][cat]["fail"]["value"].append(1.0)
+            sf_dict[cand][wp_cat][cat]["fail"]["error"].append(0.0)
 
 
 
