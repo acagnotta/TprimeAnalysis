@@ -1800,7 +1800,7 @@ RVec<int> TopCandidates_NonOverlapping_AcrossTopCategories_idx(rvec_i TopIndepen
 
 
 
-////// Calculate the TrotaEventWeight for each event based on the Trota SF of the selected top candidates in the event
+////// Calculate the TrotaEventWeight for all 3 TopCategories together for each event based on the Trota SF of the selected top candidates in the event
 float CalculateTrotaEventWeight(rvec_f TopMerged_TrotaSF, rvec_f TopMixed_TrotaSF, rvec_f TopResolved_TrotaSF, rvec_i TopMerged_forEvWeight_idx, rvec_i TopMixed_forEvWeight_idx, rvec_i TopResolved_forEvWeight_idx)
 {
   float weight = 1.0;
@@ -1815,6 +1815,18 @@ float CalculateTrotaEventWeight(rvec_f TopMerged_TrotaSF, rvec_f TopMixed_TrotaS
   for (int i = 0; i < TopResolved_forEvWeight_idx.size(); i++)
   {
     weight *= TopResolved_TrotaSF[TopResolved_forEvWeight_idx[i]];
+  }
+  
+  return weight;
+}
+
+////// Calculate the TrotaEventWeight for a single TopCategory (Resolved, Mixed or Merged) for each event based on the Trota SF of the selected top candidates in the event
+float CalculateCategoryTrotaEventWeight(rvec_f TopCand_TrotaSF, rvec_i TopCand_forEvWeight_idx)
+{
+  float weight = 1.0;
+  for (int i = 0; i < TopCand_forEvWeight_idx.size(); i++)
+  {
+    weight *= TopCand_TrotaSF[TopCand_forEvWeight_idx[i]];
   }
   
   return weight;
