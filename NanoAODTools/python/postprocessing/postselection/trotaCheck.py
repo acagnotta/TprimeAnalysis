@@ -4,14 +4,18 @@ import cmsstyle as CMS
 ROOT.EnableImplicitMT()
 ROOT.gROOT.SetBatch(True)
 
-fname       = "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_wTrotaSF_TopMixedOnly_DifferentContributions/snap_TT_semilep_2023.root"
+fname       = "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_wTrotaSF_TopMixedOnly_DifferentContributions/snap_QCD_HT2000_2023.root"
 tree_name   = "events_nominal"
 df          = ROOT.RDataFrame(tree_name, fname)
-nbins, xmin, xmax = 5, 0.0, 5.0
+# nbins, xmin, xmax = 5, 0.0, 5.0
+nbins, xmin, xmax = 50, 0.5, 1.5
 
-ResolvedVar = "nTopResolved_forEvWeight"
-MixedVar    = "nTopMixed_forEvWeight"
-MergedVar   = "nTopMerged_forEvWeight"
+# ResolvedVar = "nTopResolved_forEvWeight"
+# MixedVar    = "nTopMixed_forEvWeight"
+# MergedVar   = "nTopMerged_forEvWeight"
+ResolvedVar = "ResolvedTrotaEventWeight"
+MixedVar    = "MixedTrotaEventWeight"
+MergedVar   = "MergedTrotaEventWeight"
 
 
 h_Resolved = df.Histo1D(
@@ -29,31 +33,39 @@ h_Merged = df.Histo1D(
     MergedVar
 )
 
-# h_Total = df.Histo1D(
-#     ("h_TotalTrotaEventWeight", ";TotalTrotaEventWeight;Events", nbins, xmin, xmax),
-#     "TotalTrotaEventWeight"
-# )
+h_Total = df.Histo1D(
+    ("h_TotalTrotaEventWeight", ";TotalTrotaEventWeight;Events", nbins, xmin, xmax),
+    "TotalTrotaEventWeight"
+)
 
+# compute means directly from the RDataFrame (avoids any histogram/binning effects)
+mean_values = [
+    df.Mean(ResolvedVar).GetValue(),
+    df.Mean(MixedVar).GetValue(),
+    df.Mean(MergedVar).GetValue(),
+    df.Mean("TotalTrotaEventWeight").GetValue(),
+]
 
 histos = [
     h_Resolved.GetValue(),
     h_Mixed.GetValue(),
     h_Merged.GetValue(),
-    # h_Total.GetValue(),
+    h_Total.GetValue(),
 ]
+
 
 labels = [
     "Resolved",
     "Mixed",
     "Merged",
-    # "Total",
+    "Total",
 ]
 
 colors = [
     ROOT.kAzure+10,
     ROOT.kOrange,
     ROOT.kRed+1,
-    # ROOT.kBlack,
+    ROOT.kBlack,
 ]
 
 # Optional CMS text
@@ -70,7 +82,8 @@ c = CMS.cmsCanvas(
     "c_trota_weights",
     xmin, xmax,
     ymin, ymax,
-    "Number of Candidates Considered",
+    # "Number of Candidates Considered",
+    "Trota Event Weight",
     "Events",
     square=False,
     iPos=0,
@@ -96,13 +109,13 @@ for i, h in enumerate(histos):
 
 # Legend
 leg = CMS.cmsLeg(0.62, 0.68, 0.88, 0.88)
-for h, lab in zip(histos, labels):
-    leg.AddEntry(h, f"{lab} (#mu={h.GetMean():.2f})", "l")
+for h, mean, lab in zip(histos, mean_values, labels):
+    leg.AddEntry(h, f"{lab} (#mu={mean:.3f})", "l")
 latex = ROOT.TLatex()
 latex.SetTextFont(52)
 latex.SetTextSize(0.03)
-latex.DrawLatexNDC(0.15, 0.85, "TT_semilep") # x, y, text
+latex.DrawLatexNDC(0.15, 0.85, "QCD_HT2000") # x, y, text
 
 # Save
-CMS.SaveCanvas(c, "TrotaNumberOfCandidatesConsidered.png")
-# CMS.SaveCanvas(c, "TrotaEventWeights.pdf")
+# CMS.SaveCanvas(c, "TrotaNumberOfCandidatesConsidered.png")
+CMS.SaveCanvas(c, "TrotaEventWeights.png")

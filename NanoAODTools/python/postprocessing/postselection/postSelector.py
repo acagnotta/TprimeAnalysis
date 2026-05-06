@@ -43,8 +43,8 @@ dict_samples_file       = opt.dict_samples_file
 hist_folder             = opt.hist_folder
 tmpfold                 = opt.tmpfold
 printcutflow            = opt.printcutflow
-do_histos               = False
-do_snapshot             = True
+do_histos               = True
+do_snapshot             = False
 if do_variations:
     do_snapshot         = False
 remote_subfolder_name   = datetime.now().strftime("%Y%m%d") #20231229
@@ -85,10 +85,11 @@ branches = [
             # "nJetBtagLoose", "JetBTagLoose_idx", "nJetBtagMedium", "JetBTagMedium_idx",
             # "nGoodJet", "nGoodFatJet", "GoodJet_idx", "GoodFatJet_idx",
             # "MT", "MT_T",
-            # "TopResolved_TopScore_nominal", "TopMixed_TopScore_nominal", "FatJet_particleNetWithMass_TvsQCD",
-            # "TopMixed_pt_nominal", "TopMixed_eta", "TopMixed_phi", "TopMixed_mass_nominal", "TopMixed_idxFatJet", "TopMixed_idxJet0", "TopMixed_idxJet1", "TopMixed_idxJet2",
+            "TopResolved_TopScore_nominal", "TopMixed_TopScore_nominal", "FatJet_particleNetWithMass_TvsQCD",
+            "TopMixed_pt_nominal",
+            # "TopMixed_eta", "TopMixed_phi", "TopMixed_mass_nominal", "TopMixed_idxFatJet", "TopMixed_idxJet0", "TopMixed_idxJet1", "TopMixed_idxJet2",
             # "TightTopMix_idx", "LooseTopMix_idx", "LooseNOTTightTopMix_idx", "nLooseTopMixed", "nTightTopMixed",
-            # "TopMixed_isMatched_to_GenTop_dR0p2", "TopMixed_process",
+            "TopMixed_isMatched_to_GenTop_dR0p2", "TopMixed_process",
             "TopResolved_Independent_idx", "TopMixed_Independent_idx", "TopMerged_Independent_idx",
             "nTopMerged_forEvWeight", "nTopMixed_forEvWeight", "nTopResolved_forEvWeight",
             "TopMerged_forEvWeight_idx", "TopMixed_forEvWeight_idx", "TopResolved_forEvWeight_idx",
@@ -356,7 +357,7 @@ def add_TrotaScaleFactors(df, sampleflag, sample_process):
     # 1. truth:                     if the candidate is matched to a GenTop with dR<0.2
     # 2. top_process_category:      0: topmatched, 1: nonmatched, 2: other
 
-    TopSF_Tight_CorrLibFilePath         = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_nobjetlep_inside_tophadr_using_tightbjet/ScaleFactors_MT_W/CorrLib_TrotaScaleFactors_Tight.json"
+    TopSF_CorrLibFilePath               = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/CorrLib_TrotaScaleFactors_2023.json"
 
     if sampleflag:
         df_toptruth_with_matching       = df.Define("TopResolved_isMatched_to_GenTop_dR0p2",                "TopMatched_to_GenTop_with_dR(TopGenTopPart_eta, TopGenTopPart_phi, TopResolved_eta, TopResolved_phi, 0.2)")\
@@ -382,7 +383,7 @@ def add_TrotaScaleFactors(df, sampleflag, sample_process):
                                                                      .Define("nTopResolved_forEvWeight",                                "static_cast<int>(TopResolved_forEvWeight_idx.size());")
 
         df_TrotaScaleFactors            = df_NonOverlappingTopCandidates.Define("TopMerged_TrotaSF",                                    "ROOT::VecOps::RVec<float>(FatJet_particleNetWithMass_TvsQCD.size(), 1.0f)")\
-                                                                        .Define("TopMixed_TrotaSF",                                     f'GetTrotaSF("{TopSF_Tight_CorrLibFilePath}", "{era}", "{"Mixed"}", TopMixed_process, TopMixed_TopScore_nominal, {Top_Mixed_wp["10%"]}, {Top_Mixed_wp["5%"]}, TopMixed_pt_nominal)')\
+                                                                        .Define("TopMixed_TrotaSF",                                     f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Mixed"}", TopMixed_process, TopMixed_TopScore_nominal, {Top_Mixed_wp["10%"]}, {Top_Mixed_wp["5%"]}, TopMixed_pt_nominal)')\
                                                                         .Define("TopResolved_TrotaSF",                                  "ROOT::VecOps::RVec<float>(TopResolved_TopScore_nominal.size(), 1.0f)")
     
         df_TrotaScaleFactors            = df_TrotaScaleFactors.Define("MergedTrotaEventWeight",                                         "CalculateCategoryTrotaEventWeight(TopMerged_TrotaSF, TopMerged_forEvWeight_idx)")\
@@ -744,10 +745,10 @@ for d in datasets:
             if not noPuWeight:
                 weights_list.append("puWeight")
             if not noTrotaSF:
-                weights_list.append("TrotaEventWeight")
+                weights_list.append("TotalTrotaEventWeight")
 
             weights_expr            = "*".join(weights_list)
-            weights_expr_woTrota    = "*".join([w for w in weights_list if w != "TrotaEventWeight"])
+            weights_expr_woTrota    = "*".join([w for w in weights_list if w != "TotalTrotaEventWeight"])
             print("weights expression:                  ", weights_expr)
             print("weights expression without Trota:    ", weights_expr_woTrota)
             df_wnom         = df_TrotaSF.Define("w_nominal",            f"{weights_expr}")\
