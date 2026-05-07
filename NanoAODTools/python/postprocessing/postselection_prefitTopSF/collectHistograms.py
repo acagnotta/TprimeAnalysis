@@ -36,12 +36,17 @@ if not os.path.exists(workspaceSubFolder):
     os.makedirs(workspaceSubFolder)
     print(f"Created workspace subfolder: {workspaceSubFolder}")
 
+lumi_unc_dict       = {"2022": 1.014, "2022EE": 1.014, "2023": 1.013, "2023postBPix": 1.013} # https://twiki.cern.ch/twiki/bin/viewauth/CMS/LumiRecommendationsRun3
 event_categories    = ["pt0to200","pt200to400","pt400to600","pt600to1000"]
 uncertainties       = {
-                        "lumi":         [1.013,"lnN"],
+                        "lumi":         [lumi_unc_dict[era],"lnN"],
                         "pu":           [1,"factor"],
                         "jesTotal":     [1,"file"],
-                        "jer":          [1,"file"]
+                        "jer":          [1,"file"],
+                        "pdf_total":    [1,"file"],
+                        "QCDScale":     [1,"file"],
+                        "ISR":          [1,"file"],
+                        "FSR":          [1,"file"],
                         }
 uncertainties_tags  = {
                         "nominal":          "nominal",
@@ -50,7 +55,15 @@ uncertainties_tags  = {
                         "jesTotal_up":      "jesTotalUp",
                         "jesTotal_down":    "jesTotalDown",
                         "jer_up":           "jerUp",
-                        "jer_down":         "jerDown"
+                        "jer_down":         "jerDown",
+                        "pdf_total_up":     "pdf_totalUp",
+                        "pdf_total_down":   "pdf_totalDown",
+                        "QCDScale_up":      "QCDScaleUp",
+                        "QCDScale_down":    "QCDScaleDown",
+                        "ISR_up":           "ISRUp",
+                        "ISR_down":         "ISRDown",
+                        "FSR_up":           "FSRUp",
+                        "FSR_down":         "FSRDown"
                         }
 
 tag_categories      = {
