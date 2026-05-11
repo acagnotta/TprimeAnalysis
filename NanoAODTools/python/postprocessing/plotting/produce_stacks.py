@@ -181,8 +181,8 @@ inSample            = {"Data": [], "signal": [], "bkg": []}
 cut_tag             = cut_string(cut)
 
 for dat in datasets:
-    if "Tprime" in dat:
-        continue
+    # if "Tprime" in dat:
+    #     continue
     year_tag        = dat.split("_")[-1]
     folder_tmp      = folder_dict[year_tag]
     repohisto_tmp   = folder_tmp + "plots/"
@@ -212,8 +212,8 @@ MT_T_xbins          = array.array('d', [500, 600, 700, 800, 1000, 1400, 2000])
 PuppiMET_pt_xbins   = array.array('d', [250, 300, 350, 400, 450, 500, 600, 850])
 
 
-for v in vars:
-# for v in [var for var in vars if var._name == "MT_T"]:
+# for v in vars:
+for v in [var for var in vars if var._name == "MT_T"]:
 # for v in [var for var in vars if var._name == "PuppiMET_T1_pt_nominal"]:
 # for v in [var for var in vars if var._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]]:
 # for v in [var for var in vars if var._name in ["MT_T", "PuppiMET_T1_pt_nominal"]]:
@@ -336,15 +336,15 @@ for v in vars:
                 err_dict_SystBin[syst].append(math.hypot(*[err_dict_SystSampleBin[syst][s.label][bin] for s in inSample["bkg"]]))
         
         for bin in range(nbins):
-            print(f"eyU in bin {bin} --> {[err_dict_SystSampleBin[syst][s.label][bin] for s in inSample['bkg'] for syst in systematics if 'up' in syst]}")
-            print(f"eyD in bin {bin} --> {[err_dict_SystSampleBin[syst][s.label][bin] for s in inSample['bkg'] for syst in systematics if 'down' in syst]}")
+            # print(f"eyU in bin {bin} --> {[err_dict_SystSampleBin[syst][s.label][bin] for s in inSample['bkg'] for syst in systematics if 'up' in syst]}")
+            # print(f"eyD in bin {bin} --> {[err_dict_SystSampleBin[syst][s.label][bin] for s in inSample['bkg'] for syst in systematics if 'down' in syst]}")
             errSyst_up.append(math.hypot(*[err_dict_SystBin[syst][bin] for syst in systematics if "up" in syst]))
             errSyst_down.append(math.hypot(*[err_dict_SystBin[syst][bin] for syst in systematics if "down" in syst]))
 
-        print(f"err_dict_SystSampleBin: {err_dict_SystSampleBin}")
-        print(f"err_dict_SystBin:       {err_dict_SystBin}")
-        print(f"errSyst_up:             {errSyst_up}")
-        print(f"errSyst_down:           {errSyst_down}")
+        # print(f"err_dict_SystSampleBin: {err_dict_SystSampleBin}")
+        # print(f"err_dict_SystBin:       {err_dict_SystBin}")
+        # print(f"errSyst_up:             {errSyst_up}")
+        # print(f"errSyst_down:           {errSyst_down}")
 
         
         # histo_bkg_dict["err_syst"] = ROOT.TGraphAsymmErrors(nbins,
@@ -355,7 +355,7 @@ for v in vars:
         #                                                     array.array("d", errSyst_up),
         #                                                     array.array("d", errSyst_down)
         #                                                     ) # n, x, y, exl, exh, eyl, eyh
-        print(array.array("d", [tmp_nom.GetBinLowEdge(bin) for bin in range(1, nbins+2)]))
+        # print(array.array("d", [tmp_nom.GetBinLowEdge(bin) for bin in range(1, nbins+2)]))
         histo_bkg_dict["err_syst_up"]   = ROOT.TH1D(v._name+"_"+r+"_"+"err_syst_up", "", nbins, array.array("d", [tmp_nom.GetBinLowEdge(bin) for bin in range(1, nbins+2)]))
         histo_bkg_dict["err_syst_down"] = ROOT.TH1D(v._name+"_"+r+"_"+"err_syst_down", "", nbins, array.array("d", [tmp_nom.GetBinLowEdge(bin) for bin in range(1, nbins+2)]))
         for bin in range(1, nbins+1):
@@ -411,7 +411,8 @@ for v in vars:
 
         ##### Y-axis ######
         yTitle              = "Events"
-        if (not blind) and not ("SR" in r) and (not v._MConly):
+        # if (not blind) and not ("SR" in r) and (not v._MConly):
+        if (not blind) and ((not ("SR" in r) or ("SRTopLoose" in r)) or (("SR" in r) and not ("SRTop" in r))) and (not v._MConly):
             if histo_data is not None:
                 yMax            = max(sum([histo_bkg_dict["nominal"][process].GetMaximum() for process in histo_bkg_dict["nominal"]]), histo_data.GetMaximum())
             else:

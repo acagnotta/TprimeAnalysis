@@ -165,7 +165,15 @@ def make_stack_with_ratio(canv_name, histo_bkg_dict, histo_data=None, histo_sign
         CMS.cmsDraw(h_ratio_down, "HISTSAME", lcolor=ROOT.kRed, lstyle=ROOT.kDashed, msize=0, fstyle=0)
 
 
-
+    ###### Calculate total discrepancy between Data and MC in the ratio plot and add it to the legend ######
+    if histo_data is not None:
+        total_discrepancy = 0
+        for i in range(1, histo_ratio.GetNbinsX()+1):
+            if histo_ratio.GetBinContent(i) != 0:
+                total_discrepancy += abs(histo_ratio.GetBinContent(i) - 1) / h_bkg_err.GetBinError(i)
+                # total_discrepancy += ((histo_ratio.GetBinContent(i) - 1) / h_bkg_err.GetBinError(i))**2
+        # total_discrepancy = math.sqrt(total_discrepancy)
+        leg.AddEntry(ROOT.nullptr, f"Total Discrepancy: {total_discrepancy:.2f}", "")
 
 
 
