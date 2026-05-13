@@ -27,6 +27,7 @@ parser.add_option(      '--syst',               dest='syst',                acti
 parser.add_option(      '--nfiles_max',         dest='nfiles_max',          type=int,               default=1,                                      help='Max number of files to process per sample')
 parser.add_option(      '--noSFbtag',           dest='noSFbtag',            action='store_true',    default=False,                                  help='remove b tag SF')
 parser.add_option(      '--noPuWeight',         dest='noPuWeight',          action='store_true',    default=False,                                  help='remove PU weight')
+parser.add_option(      '--noTopPtWeight',      dest='noTopPtWeight',       action='store_true',    default=False,                                  help='remove top pt weight')
 parser.add_option(      '--noTrotaSF',          dest='noTrotaSF',           action='store_true',    default=False,                                  help='remove Trota SF')
 parser.add_option(      '--tmpfold',            dest='tmpfold',             action='store_true',    default=False,                                  help='test tmp folder for out file')
 parser.add_option(      '--printcutflow',       dest='printcutflow',        action='store_true',    default=False,                                  help='print cutflow')
@@ -38,6 +39,7 @@ nfiles_max              = opt.nfiles_max
 do_variations           = opt.syst
 noSFbtag                = opt.noSFbtag
 noPuWeight              = opt.noPuWeight
+noTopPtWeight           = opt.noTopPtWeight
 noTrotaSF               = opt.noTrotaSF
 dict_samples_file       = opt.dict_samples_file
 hist_folder             = opt.hist_folder
@@ -244,6 +246,17 @@ def split_cuts_keeping_parentheses(cut_string):
         cuts.append(current_cut.strip())
     
     return cuts
+
+################### GenTopLep ################
+def GenTopLep(df):
+    df = df.Define("nTopGenLep",        "countTopGenLep(GenPart_pdgId, GenPart_genPartIdxMother, GenPart_genPartIdxMother_prompt, GenPart_statusFlags)")\
+           .Define("TopGenLep_idx",     "TopGenLep_genPartIdx(GenPart_pdgId, GenPart_genPartIdxMother, GenPart_genPartIdxMother_prompt, GenPart_statusFlags)")\
+           .Define("TopGenLep_pt",      "TopGenLep_var(TopGenLep_idx, GenPart_pt)")\
+           .Define("TopGenLep_eta",     "TopGenLep_var(TopGenLep_idx, GenPart_eta)")\
+           .Define("TopGenLep_phi",     "TopGenLep_var(TopGenLep_idx, GenPart_phi)")\
+           .Define("TopGenLep_mass",    "TopGenLep_var(TopGenLep_idx, GenPart_mass)")
+
+    return df
 
 ################### preselection ###############
 def preselection(df, btagAlg, year, EE):
@@ -505,15 +518,31 @@ def savehisto(d, dict_h, regions_def, var, s_cut):
     
     for s in s_list:
         if tmpfold:
-            repohisto_tmp = "/tmp/"+username+"/"
-            if not os.path.exists(repohisto_tmp):
-                os.makedirs(repohisto_tmp)
-            repohisto_tmp = "/tmp/"+username+"/"+s.label+"/"
-            if not os.path.exists(repohisto_tmp):
-                os.makedirs(repohisto_tmp)
-            outfile = ROOT.TFile.Open(repohisto_tmp+s.label+'.root', "RECREATE")
+            # repohisto_tmp = "/tmp/"+username+"/"
+            # if not os.path.exists(repohisto_tmp):
+            #     os.makedirs(repohisto_tmp)
+            # repohisto_tmp = "/tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"
+            # if not os.path.exists(repohisto_tmp):
+            #     os.makedirs(repohisto_tmp)
+            # repohisto_tmp = "/tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"+s.label+"/"
+            # if not os.path.exists(repohisto_tmp):
+            #     os.makedirs(repohisto_tmp)
+            
+            base_tmp        = os.environ.get("_CONDOR_SCRATCH_DIR", os.environ.get("TMPDIR", "/tmp"))
+            print("base_tmp:", base_tmp)
+            repohisto_tmp   = os.path.join(
+                base_tmp,
+                os.path.basename(os.path.normpath(hist_folder)),
+                s.label
+            )
+
+            os.makedirs(repohisto_tmp, exist_ok=True)
+
+            outfile_path    = os.path.join(repohisto_tmp, s.label + ".root")
+            print("DEBUG output ROOT file:", outfile_path)
+            outfile         = ROOT.TFile.Open(outfile_path, "RECREATE")
         else:
-            outfile = ROOT.TFile.Open(repohisto+s.label+'.root', "RECREATE")
+            outfile         = ROOT.TFile.Open(repohisto+s.label+'.root', "RECREATE")
 
         for n, vari in enumerate(variations):
             for reg in regions_def.keys():
@@ -667,8 +696,10 @@ for d in datasets:
     else:
         s_list              = [d]
     if 'Data' in d.label:
+        isMC                = False
         sampleflag          = 0
     else:
+        isMC                = True
         sampleflag          = 1
     c_                      = cut
     h[d.label]              = {}
@@ -731,6 +762,22 @@ for d in datasets:
         df_hemveto          = df_hemveto.Filter("(isMC || (year != 2018) || (HEMVeto || run<319077.))")
         df_hlt              = trigger_filter(df_hemveto, s.label, sampleflag)
 
+        if isMC:
+            df_hlt          = GenTopLep(df_hlt)
+        else:
+            df_hlt          = df_hlt
+
+        if sampleflag:
+            if "TT" in s.label:                                                                                                                     # topPt reweighting for TT only, for the other samples w_topPt is defined as 1
+                if "hadr" in s.label:
+                    df_hlt = df_hlt.Define("w_topPt", "topPtReweighting(TopGenTopPart_pt[0], TopGenTopPart_pt[1])")
+                elif "semilep" in s.label:
+                    df_hlt = df_hlt.Define("w_topPt", "topPtReweighting(TopGenTopPart_pt[0], TopGenLep_pt[0])")
+                elif "dilep" in s.label:
+                    df_hlt = df_hlt.Define("w_topPt", "topPtReweighting(TopGenLep_pt[0], TopGenLep_pt[1])")
+            else:
+                df_hlt = df_hlt.Define("w_topPt", "1.0")
+
         df_presel           = preselection(df_hlt, bTagAlg, s.year, EE)
         df_topsel           = select_top(df_presel, sampleflag)
         df_topsel           = df_topsel.Define("MT_T", "sqrt(2 * Top_pt * PuppiMET_T1_pt_nominal * (1 - cos(Top_phi - PuppiMET_T1_phi_nominal)))")
@@ -744,6 +791,8 @@ for d in datasets:
                 weights_list.append("SFbtag_nominal")
             if not noPuWeight:
                 weights_list.append("puWeight")
+            if not noTopPtWeight:
+                weights_list.append("w_topPt")
             if not noTrotaSF:
                 weights_list.append("TotalTrotaEventWeight")
 
