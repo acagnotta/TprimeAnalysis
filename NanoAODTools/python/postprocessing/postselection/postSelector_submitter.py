@@ -27,6 +27,7 @@ parser.add_option(      '--syst',                   dest='syst',                
 parser.add_option(      '--dryrun',                 dest='dryrun',              action='store_true',    default = False,                                        help='dryrun')
 parser.add_option(      '--noSFbtag',               dest='noSFbtag',            action='store_true',    default = False,                                        help='remove b tag SF')
 parser.add_option(      '--noPuWeight',             dest='noPuWeight',          action='store_true',    default = False,                                        help='remove PU weight')
+parser.add_option(      '--noTopPtWeight',          dest='noTopPtWeight',       action='store_true',    default = False,                                        help='remove top pt weight')
 parser.add_option(      '--noTrotaSF',              dest='noTrotaSF',           action='store_true',    default = False,                                        help='remove Trota SF')
 parser.add_option(      '--printcutflow',           dest='printcutflow',        action='store_true',    default=False,                                          help='print cutflow')
 
@@ -37,6 +38,7 @@ nfiles_max          = 10000#opt.nfiles_max
 dryrun              = opt.dryrun
 noSFbtag            = opt.noSFbtag
 noPuWeight          = opt.noPuWeight
+noTopPtWeight       = opt.noTopPtWeight
 noTrotaSF           = opt.noTrotaSF
 printcutflow        = opt.printcutflow
 
@@ -59,6 +61,8 @@ if noSFbtag:
     syst_suffix    += "_noSFbtag"
 if noPuWeight:
     syst_suffix    += "_noPuWeight"
+if noTopPtWeight:
+    syst_suffix    += "_noTopPtWeight"
 if noTrotaSF:
     syst_suffix    += "_noTrotaSF"
 
@@ -94,12 +98,19 @@ def sub_writer(run_folder, log_folder, dataset, syst_suffix):
     f.close()
 
 def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_max, syst=False):
-    f = open(run_folder+"runner.sh", "w")
-    f.write("#!/usr/bin/bash\n")
-    f.write("cd /afs/cern.ch/user/" + inituser + "/" + username + "/\n")
-    f.write("source analysis_TPrime.sh\n")
-    f.write("cd python/postprocessing/postselection/\n")
-    pycommand = "python3 postSelector.py "+f"-d {dataset} --dict_samples_file {dict_samples_file} --hist_folder {hist_folder} --nfiles_max {nfiles_max} --tmpfold"
+    runner_path = run_folder + "runner.sh"
+    run_label   = os.path.basename(os.path.normpath(hist_folder))
+    dest_dir    = hist_folder.rstrip("/") + "/plots"
+
+    pycommand = (
+        "python3 postSelector.py "
+        + f"-d {dataset} "
+        + f"--dict_samples_file {dict_samples_file} "
+        + f"--hist_folder {hist_folder} "
+        + f"--nfiles_max {nfiles_max} "
+        + "--tmpfold"
+    )
+
     if syst:
         pycommand += " --syst"
     if noSFbtag:
@@ -111,10 +122,104 @@ def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_ma
     if printcutflow:
         pycommand += " --printcutflow"
 
-    f.write(pycommand+"\n")
-    f.write("cp /tmp/"+username+"/"+dataset+"/"+dataset+".root "+hist_folder+"plots/.\n")
-    f.write("ls -lthra "+hist_folder+"plots/.\n")
-    f.close()
+    with open(runner_path, "w") as f:
+        f.write("#!/usr/bin/env bash\n")
+        f.write("set -eo pipefail\n\n")
+
+        f.write('echo "===== Job started ====="\n')
+        f.write('echo "Host: $(hostname)"\n')
+        f.write('echo "Date: $(date)"\n')
+        f.write('echo "User: ${USER:-unknown}"\n')
+        f.write('echo "PWD at start: $(pwd)"\n')
+        f.write('echo "_CONDOR_SCRATCH_DIR: ${_CONDOR_SCRATCH_DIR:-not set}"\n')
+        f.write('echo "TMPDIR: ${TMPDIR:-not set}"\n\n')
+
+        f.write("cd /afs/cern.ch/user/" + inituser + "/" + username + "/\n")
+        f.write("source analysis_TPrime.sh\n")
+        f.write("cd python/postprocessing/postselection/\n\n")
+
+        # This must match postSelector.py:
+        # base_tmp = os.environ.get("_CONDOR_SCRATCH_DIR", os.environ.get("TMPDIR", "/tmp"))
+        f.write('base_tmp="${_CONDOR_SCRATCH_DIR:-${TMPDIR:-/tmp}}"\n')
+        f.write(f'run_label="{run_label}"\n')
+        f.write(f'dataset="{dataset}"\n')
+        f.write('outdir="${base_tmp}/${run_label}/${dataset}"\n')
+        f.write('outfile="${outdir}/${dataset}.root"\n')
+        f.write(f'destdir="{dest_dir}"\n\n')
+
+        f.write('echo "base_tmp: ${base_tmp}"\n')
+        f.write('echo "outdir: ${outdir}"\n')
+        f.write('echo "outfile: ${outfile}"\n')
+        f.write('echo "destdir: ${destdir}"\n\n')
+
+        f.write('echo "Creating local output directory: ${outdir}"\n')
+        f.write('mkdir -p "${outdir}"\n')
+        f.write('mkdir -p "${destdir}"\n\n')
+
+        f.write('echo "Running postSelector command:"\n')
+        f.write(f'echo "{pycommand}"\n\n')
+
+        f.write("set +e\n")
+        f.write(pycommand + "\n")
+        f.write("rc=$?\n")
+        f.write("set -e\n\n")
+
+        f.write('if [ "${rc}" -ne 0 ]; then\n')
+        f.write('    echo "ERROR: postSelector.py failed with exit code ${rc}" >&2\n')
+        f.write('    echo "Not attempting to copy output." >&2\n')
+        f.write('    exit "${rc}"\n')
+        f.write("fi\n\n")
+
+        f.write('echo "Checking expected output file: ${outfile}"\n')
+        f.write('if [ ! -s "${outfile}" ]; then\n')
+        f.write('    echo "ERROR: expected output file does not exist or is empty: ${outfile}" >&2\n')
+        f.write('    echo "Listing base tmp area:" >&2\n')
+        f.write('    ls -lthra "${base_tmp}" || true\n')
+        f.write('    echo "Listing run label directory:" >&2\n')
+        f.write('    ls -lthra "${base_tmp}/${run_label}" || true\n')
+        f.write('    echo "Listing expected output directory:" >&2\n')
+        f.write('    ls -lthra "${outdir}" || true\n')
+        f.write("    exit 2\n")
+        f.write("fi\n\n")
+
+        f.write('echo "Copying output to ${destdir}"\n')
+        f.write('cp -v "${outfile}" "${destdir}/"\n\n')
+
+        f.write('echo "Final destination content:"\n')
+        f.write('ls -lthra "${destdir}/"\n\n')
+
+        f.write('echo "===== Job finished successfully ====="\n')
+        f.write('echo "Date: $(date)"\n')
+
+    os.chmod(runner_path, 0o755)
+    
+    
+    # f = open(run_folder+"runner.sh", "w")
+    # f.write("#!/usr/bin/bash\n")
+    # f.write("cd /afs/cern.ch/user/" + inituser + "/" + username + "/\n")
+    # f.write("source analysis_TPrime.sh\n")
+    # f.write("cd python/postprocessing/postselection/\n")
+    # pycommand = "python3 postSelector.py "+f"-d {dataset} --dict_samples_file {dict_samples_file} --hist_folder {hist_folder} --nfiles_max {nfiles_max} --tmpfold"
+    # if syst:
+    #     pycommand += " --syst"
+    # if noSFbtag:
+    #     pycommand += " --noSFbtag"
+    # if noPuWeight:
+    #     pycommand += " --noPuWeight"
+    # if noTopPtWeight:
+    #     pycommand += " --noTopPtWeight"
+    # if noTrotaSF:
+    #     pycommand += " --noTrotaSF"
+    # if printcutflow:
+    #     pycommand += " --printcutflow"
+
+    # f.write(pycommand+"\n")
+    # f.write("ls -lthra /tmp/"+username+"/"+"\n")
+    # f.write("ls -lthra /tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"+"\n")
+    # f.write("ls -lthra /tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"+dataset+"/"+"\n")
+    # f.write("cp /tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"+dataset+"/"+dataset+".root "+hist_folder+"plots/.\n")
+    # f.write("ls -lthra "+hist_folder+"plots/.\n")
+    # f.close()
 
 
 if not os.path.exists("/tmp/x509up_u" + str(uid)):
