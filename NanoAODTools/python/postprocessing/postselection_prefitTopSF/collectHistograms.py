@@ -26,7 +26,7 @@ region                  = opt.region
 outputfolder            = config["TrotaScaleFactor"]["outputfolder"][era]
 fit_variable            = config["TrotaScaleFactor"]["fit_variable"][region]
 plotsFolder             = f"{outputfolder}/plots/"
-workspaceFolder         = f"{outputfolder}/workspace_{region}/"
+workspaceFolder         = f"{outputfolder}/workspace_{region}_allSyst_wo_otherSyst/"
 workspaceSubFolder      = f"{workspaceFolder}/{fit_variable}/"
 
 if not os.path.exists(workspaceFolder):
@@ -40,6 +40,7 @@ lumi_unc_dict       = {"2022": 1.014, "2022EE": 1.014, "2023": 1.013, "2023postB
 event_categories    = ["pt0to200","pt200to400","pt400to600","pt600to1000"]
 uncertainties       = {
                         "lumi":         [lumi_unc_dict[era],"lnN"],
+                        "otherSyst":    [1.5,"lnN"],
                         "pu":           [1,"factor"],
                         "jesTotal":     [1,"file"],
                         "jer":          [1,"file"],
@@ -286,8 +287,11 @@ for ev_cat in event_categories:
                 unc_line    += "shape\t"
             else: 
                 unc_line    += unc_mode + '\t'
-                            
-            combine_lines.append(unc_line+'\t'.join([f"{unc_size}"]*number_of_categories*2)+'\n')
+
+            if unc == "otherSyst":
+                combine_lines.append(unc_line+'\t'.join([f"1 1 {unc_size}"]*2)+'\n')
+            else:
+                combine_lines.append(unc_line+'\t'.join([f"{unc_size}"]*number_of_categories*2)+'\n')
         combine_lines.append("# normalisation factor to match MC and data\n")
         combine_lines.append("# freezes automatically\n")
         combine_lines.append(f"norm_match_mc_data rateParam * * {summaryCount_dict[ev_cat]['norm_match_mc_to_data']:.6f}\n")
