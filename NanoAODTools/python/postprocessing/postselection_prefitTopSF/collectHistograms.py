@@ -26,7 +26,7 @@ region                  = opt.region
 outputfolder            = config["TrotaScaleFactor"]["outputfolder"][era]
 fit_variable            = config["TrotaScaleFactor"]["fit_variable"][region]
 plotsFolder             = f"{outputfolder}/plots/"
-workspaceFolder         = f"{outputfolder}/workspace_{region}_allSyst_wo_otherSyst/"
+workspaceFolder         = f"{outputfolder}/workspace_{region}/"
 workspaceSubFolder      = f"{workspaceFolder}/{fit_variable}/"
 
 if not os.path.exists(workspaceFolder):
@@ -40,10 +40,10 @@ lumi_unc_dict       = {"2022": 1.014, "2022EE": 1.014, "2023": 1.013, "2023postB
 event_categories    = ["pt0to200","pt200to400","pt400to600","pt600to1000"]
 uncertainties       = {
                         "lumi":         [lumi_unc_dict[era],"lnN"],
-                        "otherSyst":    [1.5,"lnN"],
                         "pu":           [1,"factor"],
                         "jesTotal":     [1,"file"],
                         "jer":          [1,"file"],
+                        "otherSyst":    [1.5,"lnN"],
                         "pdf_total":    [1,"file"],
                         "QCDScale":     [1,"file"],
                         "ISR":          [1,"file"],
