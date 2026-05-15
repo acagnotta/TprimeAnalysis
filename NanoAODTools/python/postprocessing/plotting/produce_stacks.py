@@ -100,10 +100,10 @@ else:
     print(f"Systematics to be added for year {year_tag}: {systematics}")
 
 if scale_signals != 1:
-    style_signals_dict = {key+f" x{scale_signals}": style_signals_dict[key] for key in style_signals_dict}
+    style_signals_dict = {key+f" [x{scale_signals}]": style_signals_dict[key] for key in style_signals_dict}
     for key in labels_dict:
         if ("Tprime" in key) or ("tDM" in key):
-            labels_dict[key] = labels_dict[key] + f" x{scale_signals}"
+            labels_dict[key] = labels_dict[key] + f" [x{scale_signals}]"
 
 
 
@@ -182,6 +182,8 @@ inSample            = {"Data": [], "signal": [], "bkg": []}
 cut_tag             = cut_string(cut)
 
 for dat in datasets:
+    # if "Tprime" in dat:
+    #     continue
     year_tag        = dat.split("_")[-1]
     folder_tmp      = folder_dict[year_tag]
     repohisto_tmp   = folder_tmp + "plots/"
@@ -196,7 +198,7 @@ for dat in datasets:
             inFilePath["Data"].append(repohisto_tmp + s.label + ".root")
             inFile["Data"].append(ROOT.TFile.Open(repohisto_tmp + s.label + ".root"))
             inSample["Data"].append(s)
-        elif "tDM" in s.label or "Tp" in s.label:
+        elif "tDM" in s.label or "Tprime" in s.label:
             inFilePath["signal"].append(repohisto_tmp + s.label + ".root")
             inFile["signal"].append(ROOT.TFile.Open(repohisto_tmp + s.label + ".root"))
             inSample["signal"].append(s)
@@ -252,10 +254,10 @@ for v in vars:
                 tmp_                            = tmp.Rebin(len(MT_T_xbins)-1, histo_name+"_", MT_T_xbins)
                 tmp                             = copy.deepcopy(tmp_)
                 tmp.SetName(histo_name)
-            # elif v._name == "PuppiMET_T1_pt_nominal":
-            #     tmp_                            = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
-            #     tmp                             = copy.deepcopy(tmp_)
-            #     tmp.SetName(histo_name)
+            elif v._name == "PuppiMET_T1_pt_nominal":
+                tmp_                            = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
+                tmp                             = copy.deepcopy(tmp_)
+                tmp.SetName(histo_name)
             if len(samples[s.label][s.label]["ntot"]):
                 tmp.Scale(lumi)
                 tmp                             = copy.deepcopy(tmp)
@@ -293,7 +295,6 @@ for v in vars:
                 continue
             tmp_nom                         = copy.deepcopy(tmp)
             nbins                           = tmp_nom.GetNbinsX()
-            # print(f"Processing background {s.label with histo {histo_name} having {nbins} bins from minimum {tmp_nom.GetXaxis().GetXmin()} to maximum {tmp_nom.GetXaxis().GetXmax()}")
             leg_label                       = labels_dict[s.process.split("_")[0]]
             if histo_bkg_dict["nominal"][leg_label] is None:
                 histo_bkg_dict["nominal"][leg_label]   = copy.deepcopy(tmp_nom)
@@ -367,7 +368,7 @@ for v in vars:
 
         ##### Data #####
         # print("Processing Data")
-        if (not blind) and ((not ("SR" in r) or ("SRTopLoose" in r)) or (("SR" in r) and not ("SRTop" in r))):
+        if (not blind) and ((not ("SR" in r) or ("Loose" in r)) or (("SR" in r) and not ("SRTop" in r))):
             if not v._MConly:
                 histo_name                          = v._name+"_"+r
                 for f, s in zip(inFile["Data"], inSample["Data"]):
@@ -380,8 +381,6 @@ for v in vars:
                     #     tmp_                        = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
                     #     tmp                         = copy.deepcopy(tmp_)
                     #     tmp.SetName(histo_name)
-                    nbins                           = tmp.GetNbinsX()
-                    # print(f"Processing data {s.label} with histo {histo_name} having {nbins} bins from minimum {tmp.GetXaxis().GetXmin()} to maximum {tmp.GetXaxis().GetXmax()}")
                     if histo_data is None:
                         histo_data                  = copy.deepcopy(tmp)
                     else:
@@ -395,13 +394,14 @@ for v in vars:
 
         ##### Drawing Options ######
         if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]:
+        # if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop"]:
             # logy    = False
             logy    = False
         elif "SR" in r:
             # logy = False
-            logy    = False
+            logy    = True
         else:
-            logy    = False
+            logy    = True
 
         ##### X-axis ######
         xTitle              = v._title
@@ -413,7 +413,8 @@ for v in vars:
 
         ##### Y-axis ######
         yTitle              = "Events"
-        if (not blind) and not ("SR" in r) and (not v._MConly):
+        # if (not blind) and not ("SR" in r) and (not v._MConly):
+        if (not blind) and ((not ("SR" in r) or ("SRTopLoose" in r)) or (("SR" in r) and not ("SRTop" in r))) and (not v._MConly):
             if histo_data is not None:
                 yMax            = max(sum([histo_bkg_dict["nominal"][process].GetMaximum() for process in histo_bkg_dict["nominal"]]), histo_data.GetMaximum())
             else:
@@ -437,7 +438,7 @@ for v in vars:
                     yMin    = 0
 
         if logy:
-            yMax            = yMax*10000
+            yMax            = yMax*100
             yMin            = yMin
         else:
             yMax            = yMax*1.6
@@ -469,7 +470,7 @@ for v in vars:
                                                 canv_name           = canv_name,
                                                 histo_bkg_dict      = histo_bkg_dict,
                                                 histo_data          = histo_data,
-                                                histo_signals_dict  = None,
+                                                histo_signals_dict  = histo_signals_dict,
                                                 region              = r,
                                                 xMin                = xMin,
                                                 xMax                = xMax,
@@ -488,6 +489,7 @@ for v in vars:
                                                 repo                = repostack_www,
                                                 colors_bkg          = colors_bkg,
                                                 style_signals_dict  = style_signals_dict,
+                                                signals_factor      = scale_signals,
                                                 systErr             = systErr
                                                 )
 

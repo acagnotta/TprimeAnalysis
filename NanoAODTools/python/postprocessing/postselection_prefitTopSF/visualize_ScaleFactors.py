@@ -7,10 +7,10 @@ ROOT.gStyle.SetOptStat(0)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("json_file")
-parser.add_argument("--category", default="Mixed", choices=["Mixed", "Merged", "Resolved"])
-parser.add_argument("--wp", default="Loose", choices=["Loose", "Tight", "LooseButNotTight"])
-parser.add_argument("--channel", default="pass", choices=["pass", "fail"])
-parser.add_argument("--output", default="sf_map")
+parser.add_argument("--category",   default="Mixed",    choices=["Mixed", "Merged", "Resolved"])
+parser.add_argument("--wp",         default="Loose",    choices=["Loose", "Tight", "LooseButNotTight"])
+parser.add_argument("--channel",    default="pass",     choices=["pass", "fail"])
+parser.add_argument("--output",     default="sf_map")
 args = parser.parse_args()
 
 with open(args.json_file) as f:
@@ -22,7 +22,7 @@ xlabels = ["[0,200[", "[200,400[", "[400,600[", "[600,1000)"]
 matchings = ["topmatched", "nonmatched", "other"]
 ylabels = ["topmatched", "nonmatched", "other"]
 
-CMS.SetExtraText("Preliminary")
+CMS.SetExtraText("Work in Progress")
 CMS.SetLumi("")
 c = CMS.cmsCanvas(
     "c",

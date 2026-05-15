@@ -5,7 +5,7 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetPalette(57)  # "DeepSea" palette
 
 
-def make_stack_with_ratio(canv_name, histo_bkg_dict, histo_data=None, histo_signals_dict=None, region=None, xMin=0, xMax=100, yMin=0, yMax=100, rMin=0, rMax=2, xTitle="xTitle", yTitle="yTitle", rTitle="rTitle", extraText="Work in Progress", lumi=1, extraSpace=0.1, iPos=0, logy=False, repo=None, colors_bkg=None, style_signals_dict=None, systErr=False):
+def make_stack_with_ratio(canv_name, histo_bkg_dict, histo_data=None, histo_signals_dict=None, region=None, xMin=0, xMax=100, yMin=0, yMax=100, rMin=0, rMax=2, xTitle="xTitle", yTitle="yTitle", rTitle="rTitle", extraText="Work in Progress", lumi=1, extraSpace=0.1, iPos=0, logy=False, repo=None, colors_bkg=None, style_signals_dict=None, signals_factor=1, systErr=False):
     ############ CREATE CANVAS AND PADS ############ 
     CMS.SetExtraText(extraText)
     CMS.SetLumi(lumi)
@@ -38,14 +38,13 @@ def make_stack_with_ratio(canv_name, histo_bkg_dict, histo_data=None, histo_sign
     pad1                = dicanv.cd(1)
     # hup                 = CMS.GetcmsCanvasHist(pad1)
     # hup.Draw("hist")
-    signals_factor      = 10
+    # signals_factor      = 10
     if logy:
         pad1.SetLogy()
         pad1.Update()
-        signals_factor  = 1
+        # signals_factor  = 1
 
-    # leg                 = CMS.cmsLeg(0.4, 0.88, 0.9, 0.67, textSize=0.025, columns=3)
-    leg                 = CMS.cmsLeg(0.4, 0.78, 0.9, 0.57, textSize=0.025, columns=3)
+    leg                 = CMS.cmsLeg(0.4, 0.88, 0.9, 0.67, textSize=0.025, columns=3)
     if region:
         latex           = ROOT.TLatex()
         latex.SetTextFont(52)
@@ -64,7 +63,7 @@ def make_stack_with_ratio(canv_name, histo_bkg_dict, histo_data=None, histo_sign
     CMS.cmsDrawStack(stack=stack, legend=leg, MC=histo_bkg_dict["nominal"], data=None, palette=palette)
     if histo_data is not None:
         CMS.cmsDraw(histo_data, "PE", mcolor=ROOT.kBlack)
-        # print("Data integral: ", histo_data.Integral())
+
     # Add statistical+systematic uncertainty band on the background stack #
     h_bkg           = stack.GetStack().Last().Clone("h_bkg")
     # h_err_syst      = histo_bkg_dict["err_syst"].Clone("h_err_syst")
@@ -103,10 +102,10 @@ def make_stack_with_ratio(canv_name, histo_bkg_dict, histo_data=None, histo_sign
     ##### Set graphics style for Signals #####
     if histo_signals_dict is not None:
         for label, histo_signal in histo_signals_dict.items():
-            histo_signal.Scale(signals_factor)
+            # histo_signal.Scale(signals_factor)
             CMS.cmsDraw(histo_signal, **style_signals_dict[label])
-            if signals_factor != 1:
-                label = f"{label} [x{signals_factor}]"
+            # if signals_factor != 1:
+            #     label = f"{label} [x{signals_factor}]"
             leg.AddEntry(histo_signal, label, "l")
 
     pad1.RedrawAxis()
