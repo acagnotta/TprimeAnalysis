@@ -1759,7 +1759,7 @@ RVec<int> top_process_category(std::string sample_process, rvec_i TopTruth_Match
 }
 
 ////// Calculate the Trota SF for each top candidate of a given category
-RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i TopCandidate_TagCat, rvec_f TopCandidate_score, float wpLoose, float wpTight, rvec_f TopCandidate_pt){
+RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i TopCandidate_TagCat, rvec_f TopCandidate_score, float wpLoose, float wpTight, rvec_f TopCandidate_pt, std::string scenario){
   /**
   * @brief Compute the Trota scale factor for each top candidate.
   *
@@ -1781,6 +1781,7 @@ RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i T
   * @param wpLoose Loose working-point threshold used to define pass/fail.
   * @param wpTight Tight working-point threshold used to define pass/fail.
   * @param TopCandidate_pt Per-candidate transverse momentum used in the SF evaluation.
+  * @param scenario String to select whether to return nominal SF ("nominal") or systematic variations ("up"/"down").
   *
   * @return RVec<float> weights containing one scale factor per top candidate.
   *
@@ -1789,7 +1790,10 @@ RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i T
 
   auto cset             = correction::CorrectionSet::from_file(corrLibFilePath);
   auto trotaSF_corr     = cset->at("TrotaScaleFactors");
-  RVec<float> weights;
+  RVec<float> weights_nominal;
+  RVec<float> weights_up;
+  RVec<float> weights_down;
+  RVec<float> errors;
   for (int i = 0; i < TopCandidate_pt.size(); i++)
   {
     float score   = TopCandidate_score[i];
@@ -1798,6 +1802,7 @@ RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i T
     std::string channel;
     std::string wpTag;
     float weight  = 1.0;
+    float error   = 0.0;
 
     if (TopCandidate_TagCat[i] == 0)
     {
@@ -1834,9 +1839,24 @@ RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i T
 
 
     weight  = trotaSF_corr->evaluate({TopCat, wpTag, TagCat, channel, "value", pt});
-    weights.push_back(weight);
+    error   = trotaSF_corr->evaluate({TopCat, wpTag, TagCat, channel, "error", pt});
+    weights_nominal.push_back(weight);
+    weights_up.push_back(weight + error);
+    weights_down.push_back(weight - error);
+    errors.push_back(error);
   }
-  return weights;
+  if (scenario == "nominal")
+  {
+    return weights_nominal;
+  }
+  else if (scenario == "up")
+  {
+    return weights_up;
+  }
+  else if (scenario == "down")
+  {
+    return weights_down;
+  }
 }
 
 
