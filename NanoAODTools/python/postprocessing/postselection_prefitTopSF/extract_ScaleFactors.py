@@ -28,7 +28,7 @@ region                  = f"{TopCategory}{wp_cat}"
 outputfolder            = config["TrotaScaleFactor"]["outputfolder"][TopCategory][era]
 fit_variable            = config["TrotaScaleFactor"]["fit_variable"][region]
 outFolder               = f"{outputfolder}/ScaleFactors/"
-outName                 = f"TrotaScaleFactors_{era}"
+outName                 = f"TrotaScaleFactors_{era}_{TopCategory}"
 outJsonPath             = f"{outFolder}/{outName}.json"
 
 categories              = ["topmatched", "nonmatched", "other"]

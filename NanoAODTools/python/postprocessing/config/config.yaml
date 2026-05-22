@@ -147,6 +147,11 @@ TrotaScaleFactor:
     "MergedLooseButNotTight":       "MT_W",
     "MergedTight":                  "MT_W",
   }
- 
 
-  
+  corrlibfolder: {
+    "2022":         "",
+    "2022EE":       "",
+    "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/corrections/2023/",
+    "2023postBPix": "",
+  }
+

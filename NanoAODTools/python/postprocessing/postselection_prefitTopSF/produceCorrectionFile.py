@@ -24,11 +24,12 @@ era                     = opt.era
 TopCategory             = opt.TopCategory
 
 outputfolder            = config["TrotaScaleFactor"]["outputfolder"][TopCategory][era]
-outFolder               = f"{outputfolder}/ScaleFactors/"
-outName                 = f"TrotaScaleFactors_{era}"
-inFilePath              = f"{outFolder}/{outName}.json"
-outFilePath             = f"{outFolder}/CorrLib_{outName}.json"
+outName                 = f"TrotaScaleFactors_{era}_{TopCategory}"
+inFilePath              = f"{outputfolder}/ScaleFactors/{outName}.json"
+corrLibFolder           = config["corrlibfolder"][era]
+outFilePath             = f"{corrLibFolder}/CorrLib_{outName}.json"
 
+os.makedirs(corrLibFolder, exist_ok=True)
 with open(inFilePath, "r") as json_file:
     TrotaScaleFactors_dict = json.load(json_file)
 
