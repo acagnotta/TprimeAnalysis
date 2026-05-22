@@ -1,8 +1,33 @@
 import json
 import correctionlib.schemav2 as cs
+import yaml
+import sys
+import os
+import optparse
 
-inFilePath  = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/TrotaScaleFactors_2023.json"
-outFilePath = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/CorrLib_TrotaScaleFactors_2023.json"
+config = {}
+config_paths = os.environ.get('PWD')+'/../config/config.yaml'
+if os.path.exists(config_paths):
+    with open(config_paths, "r") as _f:
+        config = yaml.safe_load(_f) or {}
+    print(f"Loaded config file from {config_paths}")
+else:
+    print(f"Config file not found in {config_paths}, exiting")
+    sys.exit(1)
+
+usage                   = "python3 produceCorrectionFile.py --era <era> --TopCategory <TopCategory>"
+parser                  = optparse.OptionParser(usage)
+parser.add_option(      "--era",                    dest="era",                         type=str,     default="2023",                                   help="Please enter the era, e.g. 2022, 2022EE, etc.")
+parser.add_option(      '--TopCategory',            dest='TopCategory',                 type=str,     default="Mixed",                                  help='Top category for the histograms: Resolved, Mixed or Merged')
+(opt, args)             = parser.parse_args()
+era                     = opt.era
+TopCategory             = opt.TopCategory
+
+outputfolder            = config["TrotaScaleFactor"]["outputfolder"][TopCategory][era]
+outFolder               = f"{outputfolder}/ScaleFactors/"
+outName                 = f"TrotaScaleFactors_{era}"
+inFilePath              = f"{outFolder}/{outName}.json"
+outFilePath             = f"{outFolder}/CorrLib_{outName}.json"
 
 with open(inFilePath, "r") as json_file:
     TrotaScaleFactors_dict = json.load(json_file)

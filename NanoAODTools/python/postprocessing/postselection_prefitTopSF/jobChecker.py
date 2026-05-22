@@ -4,14 +4,16 @@ import sys
 from PhysicsTools.NanoAODTools.postprocessing.samples.samples import *
 
 
-usage               = "python3 jobChecker.py -o <outFolder> --year <year> [options]"
+usage               = "python3 jobChecker.py -o <outFolder> --year <year> --TopCategory <Resolved,Mixed or Merged>"
 parser              = optparse.OptionParser(usage)
-parser.add_option("-o", "--outputFolder",   dest="outFolder", type=str,             default="/eos/user/l/lfavilla/RDF_DManalysis/results/run2023_syst_310725/plots/",   help="Please enter the output folder where the results of the jobs are stored.")
-parser.add_option(      "--year",           dest="year",      type=str,             default="2023",                                                                     help="Please enter the year of the samples to check, e.g. 2022, 2022EE, etc.")
+parser.add_option("-o", "--outputFolder",   dest="outFolder",       type=str,             default="/eos/user/l/lfavilla/RDF_DManalysis/results/run2023_syst_310725/plots/",     help="Please enter the output folder where the results of the jobs are stored.")
+parser.add_option(      '--TopCategory',    dest='TopCategory',     type=str,             default="Mixed",                                                                      help='Top category for the histograms: Resolved, Mixed or Merged')
+parser.add_option(      "--year",           dest="year",            type=str,             default="2023",                                                                       help="Please enter the year of the samples to check, e.g. 2022, 2022EE, etc.")
 (opt, args)         = parser.parse_args()
 outputFolder        = opt.outFolder
+TopCategory         = opt.TopCategory
 year                = opt.year
-rerun_script_path   = f"rerun_failed_jobs_{year}.sh"
+rerun_script_path   = f"rerun_failed_jobs_{year}_{TopCategory}.sh"
 samples_to_check    = [
                         "QCD",
                         "TT",
@@ -76,13 +78,13 @@ with open(rerun_script_path, "w") as f:
     f.write("#!/bin/bash\n\n")
     for c in components_to_rerun:
         if "Data" in c:
-            cmd1 = f"python3 postSelector_submitter.py -d {c} --dryrun\n"
-            cmd2 = f"condor_submit ./condor/{c}/condor.sub\n"
-            cmd3 = f"echo resubmitting job for {c}\n\n"
+            cmd1 = f"python3 postSelector_submitter.py -d {c} --TopCategory {TopCategory} --dryrun\n"
+            cmd2 = f"condor_submit ./condor_{TopCategory}/{c}_{TopCategory}/condor.sub\n"
+            cmd3 = f"echo resubmitting job for {c}_{TopCategory}\n\n"
         else:
-            cmd1 = f"python3 postSelector_submitter.py -d {c} --syst --dryrun\n"
-            cmd2 = f"condor_submit ./condor_syst/{c}_syst/condor.sub\n"
-            cmd3 = f"echo resubmitting job for {c}_syst\n\n"
+            cmd1 = f"python3 postSelector_submitter.py -d {c} --syst --TopCategory {TopCategory} --dryrun\n"
+            cmd2 = f"condor_submit ./condor_{TopCategory}_syst/{c}_{TopCategory}_syst/condor.sub\n"
+            cmd3 = f"echo resubmitting job for {c}_{TopCategory}_syst\n\n"
         f.write(cmd1)
         f.write(cmd2)
         f.write(cmd3)

@@ -5,18 +5,19 @@ import cmsstyle as CMS
 ROOT.gROOT.SetBatch()
 ROOT.gStyle.SetOptStat(0)
 
-parser = argparse.ArgumentParser()
+usage   = "python3 visualize_ScaleFactors.py <json_file> --TopCategory <TopCategory> --wp_cat <wp_cat> --channel <channel> --output <output_name>"
+parser  = argparse.ArgumentParser()
 parser.add_argument("json_file")
-parser.add_argument("--category",   default="Mixed",    choices=["Mixed", "Merged", "Resolved"])
-parser.add_argument("--wp",         default="Loose",    choices=["Loose", "Tight", "LooseButNotTight"])
-parser.add_argument("--channel",    default="pass",     choices=["pass", "fail"])
-parser.add_argument("--output",     default="sf_map")
+parser.add_argument("--TopCategory",    default="Mixed",    choices=["Resolved", "Mixed", "Merged"])
+parser.add_argument("--wp_cat",         default="Loose",    choices=["Loose", "Tight"])
+parser.add_argument("--channel",        default="pass",     choices=["pass", "fail"])
+parser.add_argument("--output",         default="sf_map")
 args = parser.parse_args()
 
 with open(args.json_file) as f:
     data = json.load(f)
 
-block = data[args.category][args.wp]
+block = data[args.TopCategory][args.wp_cat]
 
 xlabels = ["[0,200[", "[200,400[", "[400,600[", "[600,1000)"]
 matchings = ["topmatched", "nonmatched", "other"]

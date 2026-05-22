@@ -16,17 +16,20 @@ else:
     sys.exit(1)
 
 
-usage                   = "python3 collectHistograms.py --era <era> --region <region>"
+usage                   = "python3 collectHistograms.py --era <era> --TopCategory <TopCategory> --wp_cat <wp_cat>"
 parser                  = optparse.OptionParser(usage)
 parser.add_option(      "--era",                    dest="era",                         type=str,     default="2023",                                   help="Please enter the era, e.g. 2022, 2022EE, etc.")
-parser.add_option(      "--region",                 dest="region",                      type=str,     default="MixedLooseButNotTight",                  help="SemiLep region to consider among: ResolvedLooseButNotTight, ResolvedTight, MixedLooseButNotTight, MixedTight, MergedLooseButNotTight, MergedTight")
+parser.add_option(      '--TopCategory',            dest='TopCategory',                 type=str,     default="Mixed",                                  help='Top category for the histograms: Resolved, Mixed or Merged')
+parser.add_option(      "--wp_cat",                 dest="wp_cat",                      type=str,     default="Tight",                                  help="Working point category to consider among: Loose, LooseButNotTight, Tight")
 (opt, args)             = parser.parse_args()
 era                     = opt.era
-region                  = opt.region
-outputfolder            = config["TrotaScaleFactor"]["outputfolder"][era]
+TopCategory             = opt.TopCategory
+wp_cat                  = opt.wp_cat
+region                  = f"{TopCategory}{wp_cat}"
+outputfolder            = config["TrotaScaleFactor"]["outputfolder"][TopCategory][era]
 fit_variable            = config["TrotaScaleFactor"]["fit_variable"][region]
 plotsFolder             = f"{outputfolder}/plots/"
-workspaceFolder         = f"{outputfolder}/workspace_{region}/"
+workspaceFolder         = f"{outputfolder}/workspace_{wp_cat}/"
 workspaceSubFolder      = f"{workspaceFolder}/{fit_variable}/"
 
 if not os.path.exists(workspaceFolder):

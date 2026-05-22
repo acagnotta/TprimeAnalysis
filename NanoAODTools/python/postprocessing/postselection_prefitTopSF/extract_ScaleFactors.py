@@ -15,31 +15,19 @@ else:
     print(f"Config file not found in {config_paths}, exiting")
     sys.exit(1)
 
-usage                   = "python3 extract_ScaleFactors.py --era <era> --region <region>"
+usage                   = "python3 extract_ScaleFactors.py --era <era> --TopCategory <TopCategory> --wp_cat <wp_cat>"
 parser                  = optparse.OptionParser(usage)
 parser.add_option(      "--era",                    dest="era",                         type=str,     default="2023",                                   help="Please enter the era, e.g. 2022, 2022EE, etc.")
-parser.add_option(      "--region",                 dest="region",                      type=str,     default="MixedLooseButNotTight",                  help="SemiLep region to consider among: ResolvedLooseButNotTight, ResolvedTight, MixedLooseButNotTight, MixedTight, MergedLooseButNotTight, MergedTight")
+parser.add_option(      '--TopCategory',            dest='TopCategory',                 type=str,     default="Mixed",                                  help='Top category for the histograms: Resolved, Mixed or Merged')
+parser.add_option(      "--wp_cat",                 dest="wp_cat",                      type=str,     default="Tight",                                  help="Working point category to consider among: Loose, LooseButNotTight, Tight")
 (opt, args)             = parser.parse_args()
 era                     = opt.era
-region                  = opt.region
-outputfolder            = config["TrotaScaleFactor"]["outputfolder"][era]
+TopCategory             = opt.TopCategory
+wp_cat                  = opt.wp_cat
+region                  = f"{TopCategory}{wp_cat}"
+outputfolder            = config["TrotaScaleFactor"]["outputfolder"][TopCategory][era]
 fit_variable            = config["TrotaScaleFactor"]["fit_variable"][region]
 outFolder               = f"{outputfolder}/ScaleFactors/"
-
-if "Resolved" in region:
-    cand                = "Resolved"
-elif "Mixed" in region:
-    cand                = "Mixed"
-elif "Merged" in region:
-    cand                = "Merged"
-
-if "LooseButNotTight" in region:
-    wp_cat              = "LooseButNotTight"
-elif "Tight" in region:
-    wp_cat              = "Tight"
-elif "Loose" in region:
-    wp_cat              = "Loose"
-
 outName                 = f"TrotaScaleFactors_{era}"
 outJsonPath             = f"{outFolder}/{outName}.json"
 
@@ -57,32 +45,32 @@ if os.path.exists(outJsonPath):
 else:
     print(f"Output file {outJsonPath} does not exist. Extracting scale factors from fit results.")
     sf_dict         = {}
-if cand in sf_dict:
-    print(f"Candidate {cand} already exists in the results for era {era}. Overwriting existing scale factors for this candidate.")
+if TopCategory in sf_dict:
+    print(f"Candidate {TopCategory} already exists in the results for era {era}. Overwriting existing scale factors for this candidate.")
 else:    
-    sf_dict[cand]               = {}
-if wp_cat in sf_dict[cand]:
-    print(f"Working point category {wp_cat} already exists in the results for candidate {cand} and era {era}. Overwriting existing scale factors for this working point category.")
+    sf_dict[TopCategory]               = {}
+if wp_cat in sf_dict[TopCategory]:
+    print(f"Working point category {wp_cat} already exists in the results for candidate {TopCategory} and era {era}. Overwriting existing scale factors for this working point category.")
 else:
-    sf_dict[cand][wp_cat]       = {}
+    sf_dict[TopCategory][wp_cat]       = {}
 
 
 
 for cat in categories:
     poi                         = f"SF_{cat}"
-    sf_dict[cand][wp_cat][cat]  = {}
-    sf_dict[cand][wp_cat][cat]["pass"] = {
+    sf_dict[TopCategory][wp_cat][cat]  = {}
+    sf_dict[TopCategory][wp_cat][cat]["pass"] = {
                                         "value": [],
                                         "error": []
                                     }
-    sf_dict[cand][wp_cat][cat]["fail"] = {
+    sf_dict[TopCategory][wp_cat][cat]["fail"] = {
                                         "value": [],
                                         "error": []
                                     }
     if wp_cat in ["Loose", "Tight"]:
         for evcat in event_categories:
             print(f"\nExtracting scale factors for event category: {evcat}")
-            workspaceFolder = f"{outputfolder}/workspace_{region}/{fit_variable}"
+            workspaceFolder = f"{outputfolder}/workspace_{wp_cat}/{fit_variable}"
             inFilePath      = f"{workspaceFolder}/fitDiagnostics_{evcat}.root"
             file            = ROOT.TFile.Open(inFilePath, "READ")
             fit             = file.Get("fit_s")                             # get the signal+background fit
@@ -109,8 +97,8 @@ for cat in categories:
             if sf:
                 sf_pass_value = sf.getVal()
                 sf_pass_error = sf.getError()
-                sf_dict[cand][wp_cat][cat]["pass"]["value"].append(sf_pass_value)
-                sf_dict[cand][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
+                sf_dict[TopCategory][wp_cat][cat]["pass"]["value"].append(sf_pass_value)
+                sf_dict[TopCategory][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
                 print(f"{poi} \t\t= {sf_pass_value:.4f} ± {sf_pass_error:.4f}")
             else:
                 print(f"{poi} not found in RooFitResult")
@@ -124,20 +112,20 @@ for cat in categories:
                 print(f"Calculating w_fail for {evcat} using the relation:      w_fail = SF_fail    = 1 + (1 - SF_pass) * (norm_prefit_pass / norm_prefit_fail)")
                 print(f"with error:                                             sigma_fail          = sigma_pass * (norm_prefit_pass / norm_prefit_fail)")
                 print(f"where                                                   w_pass = SF_pass    = {sf_pass_value:.4f} ± {sf_pass_error:.4f}, norm_prefit_pass = {norm_prefit_pass:.4f}, norm_prefit_fail = {norm_prefit_fail:.4f}")
-                sf_dict[cand][wp_cat][cat]["fail"]["value"].append(1 + (1 - sf_pass_value) * (norm_prefit_pass / norm_prefit_fail))
-                sf_dict[cand][wp_cat][cat]["fail"]["error"].append(sf_pass_error * (norm_prefit_pass / norm_prefit_fail))
+                sf_dict[TopCategory][wp_cat][cat]["fail"]["value"].append(1 + (1 - sf_pass_value) * (norm_prefit_pass / norm_prefit_fail))
+                sf_dict[TopCategory][wp_cat][cat]["fail"]["error"].append(sf_pass_error * (norm_prefit_pass / norm_prefit_fail))
             else:
                 print(f"{poi} not found in RooFitResult")
 
     elif wp_cat in ["LooseButNotTight"]:
         for evcat in event_categories:
             print(f"\nExtracting scale factors for event category: {evcat}")
-            workspaceFolder_Tight   = f"{outputfolder}/workspace_{cand}Tight/{fit_variable}"
+            workspaceFolder_Tight   = f"{outputfolder}/workspace_{TopCategory}Tight/{fit_variable}"
             inFilePath_Tight        = f"{workspaceFolder_Tight}/fitDiagnostics_{evcat}.root"
             fileTight               = ROOT.TFile.Open(inFilePath_Tight, "READ")
             fitTight                = fileTight.Get("fit_s")                             # get the signal+background fit
             norm_prefit_Tight       = fileTight.Get("norm_prefit")                       # prefit shapes/yields
-            workspaceFolder_Loose   = f"{outputfolder}/workspace_{cand}Loose/{fit_variable}"
+            workspaceFolder_Loose   = f"{outputfolder}/workspace_{TopCategory}Loose/{fit_variable}"
             inFilePath_Loose        = f"{workspaceFolder_Loose}/fitDiagnostics_{evcat}.root"
             fileLoose               = ROOT.TFile.Open(inFilePath_Loose, "READ")
             fitLoose                = fileLoose.Get("fit_s")                             # get the signal+background fit
@@ -162,8 +150,8 @@ for cat in categories:
 
                 sf_pass_value          = (sf_Loose_pass_value * norm_prefit_pass_Loose - sf_Tight_pass_value * norm_prefit_pass_Tight) / (norm_prefit_pass_Loose - norm_prefit_pass_Tight)
                 sf_pass_error          = math.sqrt((sf_Loose_pass_error * norm_prefit_pass_Loose)**2 + (sf_Tight_pass_error * norm_prefit_pass_Tight)**2) / abs(norm_prefit_pass_Loose - norm_prefit_pass_Tight)
-                sf_dict[cand][wp_cat][cat]["pass"]["value"].append(sf_pass_value if sf_pass_value > 0 else 1.0)  # if the calculated SF_pass is negative, set it to 1 (no correction), according to BTV recommendations: https://btv-wiki.docs.cern.ch/PerformanceCalibration/fixedWPSFRecommendations/#scale-factor-recommendations-for-event-reweighting
-                sf_dict[cand][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
+                sf_dict[TopCategory][wp_cat][cat]["pass"]["value"].append(sf_pass_value if sf_pass_value > 0 else 1.0)  # if the calculated SF_pass is negative, set it to 1 (no correction), according to BTV recommendations: https://btv-wiki.docs.cern.ch/PerformanceCalibration/fixedWPSFRecommendations/#scale-factor-recommendations-for-event-reweighting
+                sf_dict[TopCategory][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
                 print(f"{poi} \t\t= {sf_pass_value:.4f} ± {sf_pass_error:.4f}")
             else:
                 print(f"{poi} not found in RooFitResult for either Tight or Loose fit")
@@ -171,8 +159,8 @@ for cat in categories:
             ###############
             ### SF_fail ###
             ###############
-            sf_dict[cand][wp_cat][cat]["fail"]["value"].append(1.0)
-            sf_dict[cand][wp_cat][cat]["fail"]["error"].append(0.0)
+            sf_dict[TopCategory][wp_cat][cat]["fail"]["value"].append(1.0)
+            sf_dict[TopCategory][wp_cat][cat]["fail"]["error"].append(0.0)
 
 
 

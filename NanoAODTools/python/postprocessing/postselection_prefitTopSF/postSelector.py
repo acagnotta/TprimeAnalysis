@@ -24,6 +24,7 @@ parser                  = optparse.OptionParser(usage)
 parser.add_option('-d', '--datasets',           dest='datasets',            type=str,               default="QCD_2023",                             help='Datasets to process, in the form: QCD_2023,TT_2023...')
 parser.add_option(      '--dict_samples_file',  dest='dict_samples_file',   type=str,               default="../samples/dict_samples_2023.json",    help='Path to the JSON file containing the sample definitions')
 parser.add_option(      '--hist_folder',        dest='hist_folder',         type=str,               default="",                                     help='Folder where to save the histograms')
+parser.add_option(      '--TopCategory',        dest='TopCategory',         type=str,               default="Mixed",                                help='Top category for the histograms: Resolved, Mixed or Merged')
 parser.add_option(      '--syst',               dest='syst',                action='store_true',    default=False,                                  help='calculate jerc')
 parser.add_option(      '--nfiles_max',         dest='nfiles_max',          type=int,               default=1,                                      help='Max number of files to process per sample')
 parser.add_option(      '--noTopPtWeight',      dest='noTopPtWeight',       action='store_true',    default=False,                                  help='remove top pt weight')
@@ -34,6 +35,7 @@ parser.add_option(      '--tmpfold',            dest='tmpfold',             acti
 
 (opt, args)             = parser.parse_args()
 in_dataset              = opt.datasets.split(",")
+TopCategory             = opt.TopCategory
 nfiles_max              = opt.nfiles_max
 do_variations           = opt.syst
 noTopPtWeight           = opt.noTopPtWeight
@@ -133,7 +135,7 @@ elif do_snapshot:
 
 
 cut         = requirements  # ---> see variables.py
-regions_def = regions       # ---> see variables.py
+regions_def = regions[TopCategory]       # ---> see variables.py
 var         = vars          # ---> variables.py
 var2d       = vars2D        # ---> variables.py
 

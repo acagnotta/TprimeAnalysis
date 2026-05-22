@@ -106,7 +106,7 @@ if scale_signals != 1:
             labels_dict[key] = labels_dict[key] + f" [x{scale_signals}]"
 
 
-
+regions_def     = regions[TopCategory]
 
 
 ############### SETTINGS ############### 
@@ -167,7 +167,7 @@ print("blind            = {}".format(blind))
 
 ################# variables & regions definition --> defined in variables.py 
 print("Producing histos:  {}".format([v._name for v in vars[1:]]))
-print("Regions:           {}".format(regions.keys()))
+print("Regions:           {}".format(regions_def.keys()))
 
 ################### utils ###################
 def cut_string(cut):
@@ -219,7 +219,7 @@ for v in vars:
 # for v in [var for var in vars if var._name == "PuppiMET_T1_pt_nominal"]:
 # for v in [var for var in vars if var._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]]:
 # for v in [var for var in vars if var._name in ["MT_T", "PuppiMET_T1_pt_nominal"]]:
-    for r in regions.keys():
+    for r in regions_def.keys():
     # for r in ["SRTop"]:
     # for r in ["AH"]:
     # for r in ["SemiLep_MixedLooseButNotTight_pt0to200_pass"]:
