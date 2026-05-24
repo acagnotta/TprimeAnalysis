@@ -145,7 +145,12 @@ Top_Resolved_wp = {"10%": 0.1422998,           "5%": 0.29475874,           "1%":
 Top_Mixed_wp    = {"10%": 0.7214655876159668,  "5%": 0.8474694490432739,   "1%": 0.9436638951301575,   "0.1%": 0.9789741635322571}
 Top_Merged_wp   = {"10%": 0.8,                 "5%": 0.9,                  "1%": 1.,                   "0.1%": 1.} #to double-check these wp values
 
-
+TopSF_CorrLibFilePath_dict = {
+                                "2022":             "",
+                                "2022EE":           "",
+                                "2023":             "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/CorrLib_TrotaScaleFactors_2023.json",
+                                "2023BPix":         "",
+                            }
 
 
 print("Regions to book: ")
@@ -366,11 +371,9 @@ def select_top(df, isMC):
     # where 3 means true end less than 3 means false 
     return df_topvariables
     
-def add_TrotaScaleFactors(df, sampleflag, sample_process):
+def add_TrotaScaleFactors(df, sampleflag, sample_process, TopSF_CorrLibFilePath):
     # 1. truth:                     if the candidate is matched to a GenTop with dR<0.2
     # 2. top_process_category:      0: topmatched, 1: nonmatched, 2: other
-
-    TopSF_CorrLibFilePath               = "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/CorrLib_TrotaScaleFactors_2023.json"
 
     if sampleflag:
         df_toptruth_with_matching       = df.Define("TopResolved_isMatched_to_GenTop_dR0p2",                "TopMatched_to_GenTop_with_dR(TopGenTopPart_eta, TopGenTopPart_phi, TopResolved_eta, TopResolved_phi, 0.2)")\
@@ -395,20 +398,30 @@ def add_TrotaScaleFactors(df, sampleflag, sample_process):
                                                                      .Define("nTopMixed_forEvWeight",                                   "static_cast<int>(TopMixed_forEvWeight_idx.size());")\
                                                                      .Define("nTopResolved_forEvWeight",                                "static_cast<int>(TopResolved_forEvWeight_idx.size());")
 
-        df_TrotaScaleFactors            = df_NonOverlappingTopCandidates.Define("TopMerged_TrotaSF",                                    "ROOT::VecOps::RVec<float>(FatJet_particleNetWithMass_TvsQCD.size(), 1.0f)")\
+        df_TrotaScaleFactors            = df_NonOverlappingTopCandidates.Define("TopMerged_TrotaSF",                                    f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, TopMerged_TopScore_nominal, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, TopMerged_pt_nominal, "{"nominal"}")')\
+                                                                        .Define("TopMerged_TrotaSFUp",                                  f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, TopMerged_TopScore_nominal, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, TopMerged_pt_nominal, "{"up"}")')\
+                                                                        .Define("TopMerged_TrotaSFDown",                                f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, TopMerged_TopScore_nominal, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, TopMerged_pt_nominal, "{"down"}")')\
                                                                         .Define("TopMixed_TrotaSF",                                     f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Mixed"}", TopMixed_process, TopMixed_TopScore_nominal, {Top_Mixed_wp["10%"]}, {Top_Mixed_wp["5%"]}, TopMixed_pt_nominal, "{"nominal"}")')\
                                                                         .Define("TopMixed_TrotaSFUp",                                   f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Mixed"}", TopMixed_process, TopMixed_TopScore_nominal, {Top_Mixed_wp["10%"]}, {Top_Mixed_wp["5%"]}, TopMixed_pt_nominal, "{"up"}")')\
                                                                         .Define("TopMixed_TrotaSFDown",                                 f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Mixed"}", TopMixed_process, TopMixed_TopScore_nominal, {Top_Mixed_wp["10%"]}, {Top_Mixed_wp["5%"]}, TopMixed_pt_nominal, "{"down"}")')\
-                                                                        .Define("TopResolved_TrotaSF",                                  "ROOT::VecOps::RVec<float>(TopResolved_TopScore_nominal.size(), 1.0f)")
+                                                                        .Define("TopResolved_TrotaSF",                                  f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Resolved"}", TopResolved_process, TopResolved_TopScore_nominal, {Top_Resolved_wp["10%"]}, {Top_Resolved_wp["5%"]}, TopResolved_pt_nominal, "{"nominal"}")')\
+                                                                        .Define("TopResolved_TrotaSFUp",                                f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Resolved"}", TopResolved_process, TopResolved_TopScore_nominal, {Top_Resolved_wp["10%"]}, {Top_Resolved_wp["5%"]}, TopResolved_pt_nominal, "{"up"}")')\
+                                                                        .Define("TopResolved_TrotaSFDown",                              f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Resolved"}", TopResolved_process, TopResolved_TopScore_nominal, {Top_Resolved_wp["10%"]}, {Top_Resolved_wp["5%"]}, TopResolved_pt_nominal, "{"down"}")')\
+                                                                        # .Define("TopMerged_TrotaSF",                                    "ROOT::VecOps::RVec<float>(FatJet_particleNetWithMass_TvsQCD.size(), 1.0f)")\
+                                                                        # .Define("TopResolved_TrotaSF",                                  "ROOT::VecOps::RVec<float>(TopResolved_TopScore_nominal.size(), 1.0f)")
     
         df_TrotaScaleFactors            = df_TrotaScaleFactors.Define("MergedTrotaEventWeight",                                         "CalculateCategoryTrotaEventWeight(TopMerged_TrotaSF, TopMerged_forEvWeight_idx)")\
+                                                              .Define("MergedTrotaEventWeightUp",                                       "CalculateCategoryTrotaEventWeight(TopMerged_TrotaSFUp, TopMerged_forEvWeight_idx)")\
+                                                              .Define("MergedTrotaEventWeightDown",                                     "CalculateCategoryTrotaEventWeight(TopMerged_TrotaSFDown, TopMerged_forEvWeight_idx)")\
                                                               .Define("MixedTrotaEventWeight",                                          "CalculateCategoryTrotaEventWeight(TopMixed_TrotaSF, TopMixed_forEvWeight_idx)")\
                                                               .Define("MixedTrotaEventWeightUp",                                        "CalculateCategoryTrotaEventWeight(TopMixed_TrotaSFUp, TopMixed_forEvWeight_idx)")\
                                                               .Define("MixedTrotaEventWeightDown",                                      "CalculateCategoryTrotaEventWeight(TopMixed_TrotaSFDown, TopMixed_forEvWeight_idx)")\
                                                               .Define("ResolvedTrotaEventWeight",                                       "CalculateCategoryTrotaEventWeight(TopResolved_TrotaSF, TopResolved_forEvWeight_idx)")\
+                                                              .Define("ResolvedTrotaEventWeightUp",                                     "CalculateCategoryTrotaEventWeight(TopResolved_TrotaSFUp, TopResolved_forEvWeight_idx)")\
+                                                              .Define("ResolvedTrotaEventWeightDown",                                   "CalculateCategoryTrotaEventWeight(TopResolved_TrotaSFDown, TopResolved_forEvWeight_idx)")\
                                                               .Define("TotalTrotaEventWeight",                                          "MergedTrotaEventWeight * MixedTrotaEventWeight * ResolvedTrotaEventWeight")\
-                                                              .Define("TotalTrotaEventWeightUp",                                        "MergedTrotaEventWeight * MixedTrotaEventWeightUp * ResolvedTrotaEventWeight")\
-                                                              .Define("TotalTrotaEventWeightDown",                                      "MergedTrotaEventWeight * MixedTrotaEventWeightDown * ResolvedTrotaEventWeight")
+                                                              .Define("TotalTrotaEventWeightUp",                                        "MergedTrotaEventWeightUp * MixedTrotaEventWeightUp * ResolvedTrotaEventWeightUp")\
+                                                              .Define("TotalTrotaEventWeightDown",                                      "MergedTrotaEventWeightDown * MixedTrotaEventWeightDown * ResolvedTrotaEventWeightDown")
 
     else:
         df_TrotaScaleFactors            = df
@@ -787,7 +800,7 @@ for d in datasets:
         df_presel           = preselection(df_hlt, bTagAlg, s.year, EE)
         df_topsel           = select_top(df_presel, sampleflag)
         df_topsel           = df_topsel.Define("MT_T", "sqrt(2 * Top_pt * PuppiMET_T1_pt_nominal * (1 - cos(Top_phi - PuppiMET_T1_phi_nominal)))")
-        df_TrotaSF          = add_TrotaScaleFactors(df_topsel, sampleflag, sample_process)
+        df_TrotaSF          = add_TrotaScaleFactors(df_topsel, sampleflag, sample_process, TopSF_CorrLibFilePath_dict[era])
         if do_variations:
             df_TrotaSF      = df_TrotaSF.Vary("TotalTrotaEventWeight", "RVec<float>{TotalTrotaEventWeightDown, TotalTrotaEventWeightUp}", variationTags=["down", "up"], variationName="Trota")
         else:
