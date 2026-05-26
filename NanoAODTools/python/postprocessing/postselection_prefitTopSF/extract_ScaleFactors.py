@@ -68,10 +68,21 @@ for cat in categories:
                                         "error": []
                                     }
     if wp_cat in ["Loose", "Tight"]:
+        event_categories_skipped    = []
         for evcat in event_categories:
             print(f"\nExtracting scale factors for event category: {evcat}")
             workspaceFolder = f"{outputfolder}/workspace_{wp_cat}/{fit_variable}"
             inFilePath      = f"{workspaceFolder}/fitDiagnostics_{evcat}.root"
+            if not os.path.exists(inFilePath):
+                print(f"Input file {inFilePath} not found. Skipping event category {evcat}.")
+                event_categories_skipped.append(evcat)
+                sf_dict[TopCategory][wp_cat][cat]["pass"]["value"].append(9999.0)  # assign a dummy value to indicate missing SF, to be treated as an outlier in the final analysis
+                sf_dict[TopCategory][wp_cat][cat]["pass"]["error"].append(9999.0)  # assign a dummy error to indicate missing SF, to be treated as an outlier in the final analysis
+                sf_dict[TopCategory][wp_cat][cat]["fail"]["value"].append(9999.0)  # assign a dummy value to indicate missing SF, to be treated as an outlier in the final analysis
+                sf_dict[TopCategory][wp_cat][cat]["fail"]["error"].append(9999.0)  # assign a dummy error to indicate missing SF, to be treated as an outlier in the final analysis
+                continue
+
+
             file            = ROOT.TFile.Open(inFilePath, "READ")
             fit             = file.Get("fit_s")                             # get the signal+background fit
             norm_prefit     = file.Get("norm_prefit")                       # prefit shapes/yields
@@ -118,15 +129,26 @@ for cat in categories:
                 print(f"{poi} not found in RooFitResult")
 
     elif wp_cat in ["LooseButNotTight"]:
+        event_categories_skipped    = []
         for evcat in event_categories:
             print(f"\nExtracting scale factors for event category: {evcat}")
             workspaceFolder_Tight   = f"{outputfolder}/workspace_{TopCategory}Tight/{fit_variable}"
             inFilePath_Tight        = f"{workspaceFolder_Tight}/fitDiagnostics_{evcat}.root"
+            workspaceFolder_Loose   = f"{outputfolder}/workspace_{TopCategory}Loose/{fit_variable}"
+            inFilePath_Loose        = f"{workspaceFolder_Loose}/fitDiagnostics_{evcat}.root"
+            if (not os.path.exists(inFilePath_Tight)) or (not os.path.exists(inFilePath_Loose)):
+                print(f"Input file {inFilePath_Tight} or {inFilePath_Loose} not found. Skipping event category {evcat}.")
+                event_categories_skipped.append(evcat)
+                sf_dict[TopCategory][wp_cat][cat]["pass"]["value"].append(9999.0)  # assign a dummy value to indicate missing SF, to be treated as an outlier in the final analysis
+                sf_dict[TopCategory][wp_cat][cat]["pass"]["error"].append(9999.0)  # assign a dummy error to indicate missing SF, to be treated as an outlier in the final analysis
+                sf_dict[TopCategory][wp_cat][cat]["fail"]["value"].append(9999.0)  # assign a dummy value to indicate missing SF, to be treated as an outlier in the final analysis
+                sf_dict[TopCategory][wp_cat][cat]["fail"]["error"].append(9999.0)  # assign a dummy error to indicate missing SF, to be treated as an outlier in the final analysis
+                continue
+
+
             fileTight               = ROOT.TFile.Open(inFilePath_Tight, "READ")
             fitTight                = fileTight.Get("fit_s")                             # get the signal+background fit
             norm_prefit_Tight       = fileTight.Get("norm_prefit")                       # prefit shapes/yields
-            workspaceFolder_Loose   = f"{outputfolder}/workspace_{TopCategory}Loose/{fit_variable}"
-            inFilePath_Loose        = f"{workspaceFolder_Loose}/fitDiagnostics_{evcat}.root"
             fileLoose               = ROOT.TFile.Open(inFilePath_Loose, "READ")
             fitLoose                = fileLoose.Get("fit_s")                             # get the signal+background fit
             norm_prefit_Loose       = fileLoose.Get("norm_prefit")                       # prefit shapes/yields

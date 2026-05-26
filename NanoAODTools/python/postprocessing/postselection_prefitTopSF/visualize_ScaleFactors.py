@@ -80,7 +80,11 @@ for iy, m in enumerate(matchings, start=1):
     values = block[m][args.channel]["value"]
     errors = block[m][args.channel]["error"]
     for ix in range(4):
-        latex.DrawLatex(ix + 0.5, iy - 0.5, f"{values[ix]:.3f} #pm {errors[ix]:.3f}")
+        if values[ix] == 9999.0:  # this is the dummy value we assigned for missing SFs
+            content = "N/A"
+        else:
+            content = f"{values[ix]:.3f} #pm {errors[ix]:.3f}"
+        latex.DrawLatex(ix + 0.5, iy - 0.5, content)
 
 CMS.UpdatePalettePosition(h, c)
 c.SaveAs(args.output + ".png")
