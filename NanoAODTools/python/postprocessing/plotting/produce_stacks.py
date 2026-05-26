@@ -32,7 +32,8 @@ else:
 
 usage                   = 'python3 produce_stacks.py --year_tag <year_tag>'
 parser                  = optparse.OptionParser(usage)
-parser.add_option("--year_tag",          dest="year_tag",         help="Year tag: 2022, 2022EE, 2023, 2023postBPix, Full2022, Full2023, Full2022_Full2023",       type="string")
+parser.add_option("--year_tag",          dest="year_tag",         type="string",                                    help="Year tag: 2022, 2022EE, 2023, 2023postBPix, Full2022, Full2023, Full2022_Full2023")
+parser.add_option('--TopCategory',       dest='TopCategory',      type=str,               default="Mixed",          help='Top category for the histograms: Resolved, Mixed or Merged')
 (opt, args)             = parser.parse_args()
 ################## input parameters
 extraText                           = "Work in Progress"
@@ -42,6 +43,7 @@ cut                                 = requirements      # defined in variables.p
 blind                               = False             # Set to True if you want to blind the data
 scale_signals                       = config["plotting"]["scale_signals"]                # Scaling factor for the signals
 year_tag                            = opt.year_tag
+TopCategory                         = opt.TopCategory
 
 lumi_dict                           = config["plotting"]["lumi_dict"]
 lumi_dict["Full2022"]               = lumi_dict["2022"] + lumi_dict["2022EE"]
@@ -219,6 +221,7 @@ for v in vars:
 # for v in [var for var in vars if var._name == "PuppiMET_T1_pt_nominal"]:
 # for v in [var for var in vars if var._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]]:
 # for v in [var for var in vars if var._name in ["MT_T", "PuppiMET_T1_pt_nominal"]]:
+# for v in [var for var in vars if var._name == "MT_W"]:
     for r in regions_def.keys():
     # for r in ["SRTop"]:
     # for r in ["AH"]:
@@ -399,9 +402,9 @@ for v in vars:
             logy    = False
         elif "SR" in r:
             # logy = False
-            logy    = True
+            logy    = False
         else:
-            logy    = True
+            logy    = False
 
         ##### X-axis ######
         xTitle              = v._title

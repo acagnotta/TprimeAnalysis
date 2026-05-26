@@ -71,12 +71,12 @@ vars.append(variable(name = "PuppiMET_T1_phi_nominal",  title= "Puppi MET #phi n
 
 # vars.append(variable(name = "nTightTopMixed", title= "# Top Candidate Mix", nbins = 40, xmin = -0.5, xmax=80.5))
 # vars.append(variable(name = "nTightTopResolved", title= "# Top Candidate Resolved", nbins = 25, xmin = -0.5, xmax=49.5))
-vars.append(variable(name = "nJet",             title = "# Jet",            nbins = 10, xmin = -0.5, xmax=9.5))
+# vars.append(variable(name = "nJet",             title = "# Jet",            nbins = 10, xmin = -0.5, xmax=9.5))
 # vars.append(variable(name = "nGoodJet",         title = "# GoodJet",        nbins = 10, xmin = -0.5, xmax=9.5))
-vars.append(variable(name = "nFatJet",          title = "# FatJet",         nbins = 5,  xmin = -0.5, xmax=4.5))
+# vars.append(variable(name = "nFatJet",          title = "# FatJet",         nbins = 5,  xmin = -0.5, xmax=4.5))
 # vars.append(variable(name = "nGoodFatJet",      title = "# GoodFatJet",     nbins = 5,  xmin = -0.5, xmax=4.5))
 vars.append(variable(name = "Jet_btagPNetB",    title = "jet btag score",   nbins = 20, xmin = 0,    xmax = 1,    noUnOvFlowbin = True))
-vars.append(variable(name = "nJetBtagLoose",    title = "# b-Jet (L) ",     nbins = 5,  xmin = -0.5, xmax = 4.5))
+# vars.append(variable(name = "nJetBtagLoose",    title = "# b-Jet (L) ",     nbins = 5,  xmin = -0.5, xmax = 4.5))
 vars.append(variable(name = "nJetBtagMedium",   title = "# b-Jet (M)",      nbins = 5,  xmin = -0.5, xmax = 4.5))
 vars.append(variable(name = "nJetBtagTight",    title = "# b-Jet (T)",      nbins = 5,  xmin = -0.5, xmax = 4.5))
 # vars.append(variable(name = "MinDelta_phi", title= "min #Delta #phi", nbins = 18, xmin = 0, xmax = math.pi))
@@ -111,8 +111,8 @@ vars.append(variable(name="BestTopMerged_mass",       title="BestTopMerged mass 
 
 vars.append(variable(name="W_pt",                     title="W p_{T} [GeV]",                     nbins=10, xmin=0,          xmax=250,       noUnOvFlowbin = True))
 vars.append(variable(name="MT_W",                     title="M^{W}_{T} [GeV]",                   nbins=10, xmin=0,          xmax=250,       noUnOvFlowbin = True))
-vars.append(variable(name="MT_lb",                    title="M^{lb}_{T} [GeV]",                  nbins=20, xmin=0,          xmax=500,       noUnOvFlowbin = True))
-vars.append(variable(name="MT_toplep",                title="M^{TopLep}_{T} [GeV]",              nbins=20, xmin=0,          xmax=500,       noUnOvFlowbin = True))
+# vars.append(variable(name="MT_lb",                    title="M^{lb}_{T} [GeV]",                  nbins=20, xmin=0,          xmax=500,       noUnOvFlowbin = True))
+# vars.append(variable(name="MT_toplep",                title="M^{TopLep}_{T} [GeV]",              nbins=20, xmin=0,          xmax=500,       noUnOvFlowbin = True))
 
 vars.append(variable(name="TopLep_mass",              title="TopLep mass [GeV]",                 nbins=20, xmin=0,          xmax=1000,      noUnOvFlowbin = True))
 vars.append(variable(name="TopLep_pt",                title="TopLep p_{T} [GeV]",                nbins=20, xmin=0,          xmax=1000,      noUnOvFlowbin = True))

@@ -43,10 +43,10 @@ lumi_unc_dict       = {"2022": 1.014, "2022EE": 1.014, "2023": 1.013, "2023postB
 event_categories    = ["pt0to200","pt200to400","pt400to600","pt600to1000"]
 uncertainties       = {
                         "lumi":         [lumi_unc_dict[era],"lnN"],
+                        "otherSyst":    [1.5,"lnN"],
                         "pu":           [1,"factor"],
                         "jesTotal":     [1,"file"],
                         "jer":          [1,"file"],
-                        "otherSyst":    [1.5,"lnN"],
                         "pdf_total":    [1,"file"],
                         "QCDScale":     [1,"file"],
                         "ISR":          [1,"file"],
@@ -237,9 +237,16 @@ for ev_cat, outFile in outFile_dict.items():
     outFile.cd()
     for histoname_out, histo in outputHistograms_dict.items():
         if ev_cat in histoname_out:
+            if (outputCount_dict[histoname_out] <= 0) and not ("data" in histoname_out or "nominal" in histoname_out):
+                print(f"Warning: histogram '{histoname_out}' has non-positive integral {outputCount_dict[histoname_out]:.1f} --> substituting with nominal histogram")
+                for unc,unc_tag in uncertainties_tags.items():
+                    if histoname_out.endswith(f"_{unc_tag}"):
+                        unc_tag_to_replace = unc_tag
+                        break
+                histo = outputHistograms_dict[ histoname_out.replace(unc_tag_to_replace, "nominal")].Clone(histoname_out)
             histo.Write()
     outFile.Close()
-    
+
 with open(os.path.join(workspaceSubFolder, "histogram_counts.txt"), "w") as count_file:
     for ev_cat, summary in summaryCount_dict.items():
         count_file.write(f"Event category:              {ev_cat}\n")
@@ -292,7 +299,7 @@ for ev_cat in event_categories:
                 unc_line    += unc_mode + '\t'
 
             if unc == "otherSyst":
-                combine_lines.append(unc_line+'\t'.join([f"1 1 {unc_size}"]*2)+'\n')
+                combine_lines.append(unc_line+'\t'.join([f"- - {unc_size}"]*2)+'\n')
             else:
                 combine_lines.append(unc_line+'\t'.join([f"{unc_size}"]*number_of_categories*2)+'\n')
         combine_lines.append("# normalisation factor to match MC and data\n")
@@ -323,6 +330,8 @@ with open(f"{workspaceSubFolder}/fit_procedure.sh", 'w') as fit_script_file:
         fit_script_file.write(
                                 f"combine -M MultiDimFit workspace_{ev_cat}.root \\\n"
                                 f"    --redefineSignalPOIs {','.join(['SF_' + cat for cat in categories_to_plot])} \\\n"
+                                f"    --cminDefaultMinimizerStrategy 2 \\\n"
+                                f"    --robustFit 1 \\\n"
                                 f"    --name _{ev_cat}\n"
                                 )
     fit_script_file.write("echo '[2/2] Running FitDiagnostics'\n")
@@ -331,6 +340,8 @@ with open(f"{workspaceSubFolder}/fit_procedure.sh", 'w') as fit_script_file:
                                 f"combine -M FitDiagnostics workspace_{ev_cat}.root \\\n"
                                 f"    --redefineSignalPOIs {','.join(['SF_' + cat for cat in categories_to_plot])} \\\n"
                                 f"    --saveShapes \\\n"
+                                f"    --cminDefaultMinimizerStrategy 2 \\\n"
+                                f"    --robustFit 1 \\\n"
                                 f"    --saveWithUncertainties \\\n"
                                 f"    --name _{ev_cat}\n"
                                 )
