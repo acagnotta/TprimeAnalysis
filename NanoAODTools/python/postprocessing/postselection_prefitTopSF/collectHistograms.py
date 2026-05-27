@@ -235,15 +235,23 @@ for ev_cat in event_categories:
 
 for ev_cat, outFile in outFile_dict.items():
     outFile.cd()
-    for histoname_out, histo in outputHistograms_dict.items():
+    for histoname_out in outputHistograms_dict:
         if ev_cat in histoname_out:
-            if (outputCount_dict[histoname_out] <= 0) and not ("data" in histoname_out or "nominal" in histoname_out):
+            if ("nominal" in histoname_out) and (outputCount_dict[histoname_out] <= 0):
+                print(f"Warning: nominal histogram '{histoname_out}' has non-positive integral {outputCount_dict[histoname_out]:.1f} --> forcing to 0")
+                outputHistograms_dict[histoname_out].Reset()
+                outputHistograms_dict[histoname_out].SetBinContent(1, 1e-10) # set a very small content to avoid issues with zero yields in datacards
+                histo = outputHistograms_dict[histoname_out].Clone(histoname_out)
+            
+            elif (outputCount_dict[histoname_out] <= 0) and not ("data" in histoname_out or "nominal" in histoname_out):
                 print(f"Warning: histogram '{histoname_out}' has non-positive integral {outputCount_dict[histoname_out]:.1f} --> substituting with nominal histogram")
                 for unc,unc_tag in uncertainties_tags.items():
                     if histoname_out.endswith(f"_{unc_tag}"):
                         unc_tag_to_replace = unc_tag
                         break
-                histo = outputHistograms_dict[ histoname_out.replace(unc_tag_to_replace, "nominal")].Clone(histoname_out)
+                histo = outputHistograms_dict[histoname_out.replace(unc_tag_to_replace, "nominal")].Clone(histoname_out)
+            else:
+                histo = outputHistograms_dict[histoname_out].Clone(histoname_out)
             histo.Write()
     outFile.Close()
 
