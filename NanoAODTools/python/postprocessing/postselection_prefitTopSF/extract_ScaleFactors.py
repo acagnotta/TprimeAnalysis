@@ -132,9 +132,9 @@ for cat in categories:
         event_categories_skipped    = []
         for evcat in event_categories:
             print(f"\nExtracting scale factors for event category: {evcat}")
-            workspaceFolder_Tight   = f"{outputfolder}/workspace_{TopCategory}Tight/{fit_variable}"
+            workspaceFolder_Tight   = f"{outputfolder}/workspace_Tight/{fit_variable}"
             inFilePath_Tight        = f"{workspaceFolder_Tight}/fitDiagnostics_{evcat}.root"
-            workspaceFolder_Loose   = f"{outputfolder}/workspace_{TopCategory}Loose/{fit_variable}"
+            workspaceFolder_Loose   = f"{outputfolder}/workspace_Loose/{fit_variable}"
             inFilePath_Loose        = f"{workspaceFolder_Loose}/fitDiagnostics_{evcat}.root"
             if (not os.path.exists(inFilePath_Tight)) or (not os.path.exists(inFilePath_Loose)):
                 print(f"Input file {inFilePath_Tight} or {inFilePath_Loose} not found. Skipping event category {evcat}.")
@@ -170,8 +170,14 @@ for cat in categories:
                 norm_prefit_pass_Loose = norm_prefit_Loose.find(f"pass/{cat}").getVal()
                 norm_prefit_fail_Loose = norm_prefit_Loose.find(f"fail/{cat}").getVal()
 
-                sf_pass_value          = (sf_Loose_pass_value * norm_prefit_pass_Loose - sf_Tight_pass_value * norm_prefit_pass_Tight) / (norm_prefit_pass_Loose - norm_prefit_pass_Tight)
-                sf_pass_error          = math.sqrt((sf_Loose_pass_error * norm_prefit_pass_Loose)**2 + (sf_Tight_pass_error * norm_prefit_pass_Tight)**2) / abs(norm_prefit_pass_Loose - norm_prefit_pass_Tight)
+                if abs(norm_prefit_pass_Loose - norm_prefit_pass_Tight):
+                    sf_pass_value          = (sf_Loose_pass_value * norm_prefit_pass_Loose - sf_Tight_pass_value * norm_prefit_pass_Tight) / (norm_prefit_pass_Loose - norm_prefit_pass_Tight)
+                    sf_pass_error          = math.sqrt((sf_Loose_pass_error * norm_prefit_pass_Loose)**2 + (sf_Tight_pass_error * norm_prefit_pass_Tight)**2) / abs(norm_prefit_pass_Loose - norm_prefit_pass_Tight)
+                else:
+                    print(f"Warning: norm_prefit_pass_Loose={norm_prefit_pass_Loose} and norm_prefit_pass_Tight={norm_prefit_pass_Tight} for {evcat}, cannot calculate SF_pass. Setting SF_pass to 1.0 with zero error.")
+                    sf_pass_value = 1.0
+                    sf_pass_error = 0.0
+
                 sf_dict[TopCategory][wp_cat][cat]["pass"]["value"].append(sf_pass_value if sf_pass_value > 0 else 1.0)  # if the calculated SF_pass is negative, set it to 1 (no correction), according to BTV recommendations: https://btv-wiki.docs.cern.ch/PerformanceCalibration/fixedWPSFRecommendations/#scale-factor-recommendations-for-event-reweighting
                 sf_dict[TopCategory][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
                 print(f"{poi} \t\t= {sf_pass_value:.4f} ± {sf_pass_error:.4f}")
