@@ -1840,6 +1840,11 @@ RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i T
 
     weight  = trotaSF_corr->evaluate({TopCat, wpTag, TagCat, channel, "value", pt});
     error   = trotaSF_corr->evaluate({TopCat, wpTag, TagCat, channel, "error", pt});
+    // if (weight <= 0.2 || weight >= 8.0) // if the correction has issues (low statistics at SF production) for that point, we set the weight to 1 (no correction applied) and the error to 0
+    // {
+    //   weight = 1.0;
+    //   error = 0.0;
+    // }
     weights_nominal.push_back(weight);
     weights_up.push_back(weight + error);
     weights_down.push_back(weight - error);
@@ -1856,6 +1861,12 @@ RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i T
   else if (scenario == "down")
   {
     return weights_down;
+  }
+  else
+  {
+    std::cout << "WARNING: GetTrotaSF: unknown scenario '" << scenario
+              << "'. Returning nominal SFs." << std::endl;
+    return weights_nominal;
   }
 }
 
