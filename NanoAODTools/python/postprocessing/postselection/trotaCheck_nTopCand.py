@@ -4,18 +4,15 @@ import cmsstyle as CMS
 ROOT.EnableImplicitMT()
 ROOT.gROOT.SetBatch(True)
 
-fname       = "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_wTrotaSF_TopMixedOnly_DifferentContributions/snap_QCD_HT2000_2023.root"
+sample      = "QCD_HT2000_2023" # or e.g. "TT_semilep_2023" or "QCD_HT2000_2023"
+fname       = f"/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_wTrotaScaleFactor_AllTopCategories/weight_g0p2_l8p0/snap_{sample}.root"
 tree_name   = "events_nominal"
 df          = ROOT.RDataFrame(tree_name, fname)
-# nbins, xmin, xmax = 5, 0.0, 5.0
-nbins, xmin, xmax = 50, 0.5, 1.5
+nbins, xmin, xmax = 5, 0.0, 5.0
 
-# ResolvedVar = "nTopResolved_forEvWeight"
-# MixedVar    = "nTopMixed_forEvWeight"
-# MergedVar   = "nTopMerged_forEvWeight"
-ResolvedVar = "ResolvedTrotaEventWeight"
-MixedVar    = "MixedTrotaEventWeight"
-MergedVar   = "MergedTrotaEventWeight"
+ResolvedVar = "nTopResolved_forEvWeight"
+MixedVar    = "nTopMixed_forEvWeight"
+MergedVar   = "nTopMerged_forEvWeight"
 
 
 h_Resolved = df.Histo1D(
@@ -33,24 +30,18 @@ h_Merged = df.Histo1D(
     MergedVar
 )
 
-h_Total = df.Histo1D(
-    ("h_TotalTrotaEventWeight", ";TotalTrotaEventWeight;Events", nbins, xmin, xmax),
-    "TotalTrotaEventWeight"
-)
 
 # compute means directly from the RDataFrame (avoids any histogram/binning effects)
 mean_values = [
     df.Mean(ResolvedVar).GetValue(),
     df.Mean(MixedVar).GetValue(),
     df.Mean(MergedVar).GetValue(),
-    df.Mean("TotalTrotaEventWeight").GetValue(),
 ]
 
 histos = [
     h_Resolved.GetValue(),
     h_Mixed.GetValue(),
     h_Merged.GetValue(),
-    h_Total.GetValue(),
 ]
 
 
@@ -58,14 +49,12 @@ labels = [
     "Resolved",
     "Mixed",
     "Merged",
-    "Total",
 ]
 
 colors = [
     ROOT.kAzure+10,
     ROOT.kOrange,
     ROOT.kRed+1,
-    ROOT.kBlack,
 ]
 
 # Optional CMS text
@@ -79,11 +68,10 @@ ymax = max(h.GetMaximum() for h in histos) * 1.4
 
 # cmsCanvas creates a CMS-style canvas with axes
 c = CMS.cmsCanvas(
-    "c_trota_weights",
+    "c_trota_candidates",
     xmin, xmax,
     ymin, ymax,
-    # "Number of Candidates Considered",
-    "Trota Event Weight",
+    "Number of Candidates Considered",
     "Events",
     square=False,
     iPos=0,
@@ -114,8 +102,8 @@ for h, mean, lab in zip(histos, mean_values, labels):
 latex = ROOT.TLatex()
 latex.SetTextFont(52)
 latex.SetTextSize(0.03)
-latex.DrawLatexNDC(0.15, 0.85, "QCD_HT2000") # x, y, text
+latex.DrawLatexNDC(0.15, 0.85, sample) # x, y, text
 
 # Save
 # CMS.SaveCanvas(c, "TrotaNumberOfCandidatesConsidered.png")
-CMS.SaveCanvas(c, "TrotaEventWeights.png")
+CMS.SaveCanvas(c, f"TrotaNumberOfCandidatesConsidered_{sample}.pdf")

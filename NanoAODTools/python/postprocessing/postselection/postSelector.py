@@ -45,8 +45,8 @@ dict_samples_file       = opt.dict_samples_file
 hist_folder             = opt.hist_folder
 tmpfold                 = opt.tmpfold
 printcutflow            = opt.printcutflow
-do_histos               = True
-do_snapshot             = False
+do_histos               = False
+do_snapshot             = True
 if do_variations:
     do_snapshot         = False
 remote_subfolder_name   = datetime.now().strftime("%Y%m%d") #20231229
@@ -87,16 +87,33 @@ branches = [
             # "nJetBtagLoose", "JetBTagLoose_idx", "nJetBtagMedium", "JetBTagMedium_idx",
             # "nGoodJet", "nGoodFatJet", "GoodJet_idx", "GoodFatJet_idx",
             # "MT", "MT_T",
+            "MinDelta_phi", "PuppiMET_T1_pt_nominal", "nVetoElectron", "nVetoMuon", "nJetBtagLoose",
             "TopResolved_TopScore_nominal", "TopMixed_TopScore_nominal", "FatJet_particleNetWithMass_TvsQCD",
-            "TopMixed_pt_nominal",
+            "TopResolved_pt_nominal", "TopMixed_pt_nominal", "FatJet_pt_nominal",
             # "TopMixed_eta", "TopMixed_phi", "TopMixed_mass_nominal", "TopMixed_idxFatJet", "TopMixed_idxJet0", "TopMixed_idxJet1", "TopMixed_idxJet2",
             # "TightTopMix_idx", "LooseTopMix_idx", "LooseNOTTightTopMix_idx", "nLooseTopMixed", "nTightTopMixed",
-            "TopMixed_isMatched_to_GenTop_dR0p2", "TopMixed_process",
-            "TopResolved_Independent_idx", "TopMixed_Independent_idx", "TopMerged_Independent_idx",
-            "nTopMerged_forEvWeight", "nTopMixed_forEvWeight", "nTopResolved_forEvWeight",
-            "TopMerged_forEvWeight_idx", "TopMixed_forEvWeight_idx", "TopResolved_forEvWeight_idx",
-            "TopMerged_TrotaSF", "TopMixed_TrotaSF", "TopResolved_TrotaSF", 
-            "MergedTrotaEventWeight", "MixedTrotaEventWeight", "ResolvedTrotaEventWeight", "TotalTrotaEventWeight",
+            "TopResolved_isMatched_to_GenTop_dR0p2",    "TopResolved_process",
+            "TopMixed_isMatched_to_GenTop_dR0p2",       "TopMixed_process",
+            "TopMerged_isMatched_to_GenTop_dR0p2",      "TopMerged_process",
+            "TopResolved_Independent_idx",  "TopMixed_Independent_idx",     "TopMerged_Independent_idx",
+            "nTopResolved_forEvWeight",     "nTopMixed_forEvWeight",        "nTopMerged_forEvWeight",
+            "TopResolved_forEvWeight_idx",  "TopMixed_forEvWeight_idx",     "TopMerged_forEvWeight_idx",
+            "TopResolved_TrotaSF",          "TopMixed_TrotaSF",             "TopMerged_TrotaSF",           
+            "ResolvedTrotaEventWeight",
+            "ResolvedTrotaEventWeightUp",
+            "ResolvedTrotaEventWeightDown",
+            
+            "MixedTrotaEventWeight",
+            "MixedTrotaEventWeightUp",
+            "MixedTrotaEventWeightDown",
+
+            "MergedTrotaEventWeight",
+            "MergedTrotaEventWeightUp",
+            "MergedTrotaEventWeightDown",
+
+            "TotalTrotaEventWeight",
+            "TotalTrotaEventWeightUp",
+            "TotalTrotaEventWeightDown",
             "w_nominal", "w_nominal_woTrota", "puWeight", "SFbtag_nominal",
            ]
 
@@ -148,7 +165,8 @@ Top_Merged_wp   = {"10%": 0.8,                 "5%": 0.9,                  "1%":
 TopSF_CorrLibFilePath_dict = {
                                 "2022":             "",
                                 "2022EE":           "",
-                                "2023":             "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/CorrLib_TrotaScaleFactors_2023.json",
+                                # "2023":             "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/CorrLib_TrotaScaleFactors_2023.json",
+                                "2023":             "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/corrections/2023/CorrLib_TrotaScaleFactors_2023.json",
                                 "2023BPix":         "",
                             }
 
@@ -398,9 +416,9 @@ def add_TrotaScaleFactors(df, sampleflag, sample_process, TopSF_CorrLibFilePath)
                                                                      .Define("nTopMixed_forEvWeight",                                   "static_cast<int>(TopMixed_forEvWeight_idx.size());")\
                                                                      .Define("nTopResolved_forEvWeight",                                "static_cast<int>(TopResolved_forEvWeight_idx.size());")
 
-        df_TrotaScaleFactors            = df_NonOverlappingTopCandidates.Define("TopMerged_TrotaSF",                                    f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, TopMerged_TopScore_nominal, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, TopMerged_pt_nominal, "{"nominal"}")')\
-                                                                        .Define("TopMerged_TrotaSFUp",                                  f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, TopMerged_TopScore_nominal, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, TopMerged_pt_nominal, "{"up"}")')\
-                                                                        .Define("TopMerged_TrotaSFDown",                                f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, TopMerged_TopScore_nominal, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, TopMerged_pt_nominal, "{"down"}")')\
+        df_TrotaScaleFactors            = df_NonOverlappingTopCandidates.Define("TopMerged_TrotaSF",                                    f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, FatJet_particleNetWithMass_TvsQCD, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, FatJet_pt_nominal, "{"nominal"}")')\
+                                                                        .Define("TopMerged_TrotaSFUp",                                  f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, FatJet_particleNetWithMass_TvsQCD, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, FatJet_pt_nominal, "{"up"}")')\
+                                                                        .Define("TopMerged_TrotaSFDown",                                f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, FatJet_particleNetWithMass_TvsQCD, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, FatJet_pt_nominal, "{"down"}")')\
                                                                         .Define("TopMixed_TrotaSF",                                     f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Mixed"}", TopMixed_process, TopMixed_TopScore_nominal, {Top_Mixed_wp["10%"]}, {Top_Mixed_wp["5%"]}, TopMixed_pt_nominal, "{"nominal"}")')\
                                                                         .Define("TopMixed_TrotaSFUp",                                   f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Mixed"}", TopMixed_process, TopMixed_TopScore_nominal, {Top_Mixed_wp["10%"]}, {Top_Mixed_wp["5%"]}, TopMixed_pt_nominal, "{"up"}")')\
                                                                         .Define("TopMixed_TrotaSFDown",                                 f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Mixed"}", TopMixed_process, TopMixed_TopScore_nominal, {Top_Mixed_wp["10%"]}, {Top_Mixed_wp["5%"]}, TopMixed_pt_nominal, "{"down"}")')\
