@@ -48,13 +48,6 @@ with open(inFilePath, "r") as json_file:
     TrotaScaleFactors_dict = json.load(json_file)
 
 
-def values_to_return(values, tagcat):
-    vals = list(values)
-    # if tagcat == "other":
-    #     vals[3] = vals[2]
-    return vals
-
-
 def make_topcat_content(TrotaScaleFactors_dict, TopCat):
     return {
         "key": TopCat,
@@ -86,10 +79,7 @@ def make_topcat_content(TrotaScaleFactors_dict, TopCat):
                                                             nodetype="binning",
                                                             input="TopCandidate_pt",
                                                             edges=[0, 200, 400, 600, 1000],
-                                                            content=values_to_return(
-                                                                TrotaScaleFactors_dict[TopCat][wp_cat][TagCat][channel]["value"],
-                                                                TagCat,
-                                                            ),
+                                                            content=TrotaScaleFactors_dict[TopCat][wp_cat][TagCat][channel]["value"],
                                                             flow="clamp",
                                                         ),
                                                     },
@@ -99,10 +89,7 @@ def make_topcat_content(TrotaScaleFactors_dict, TopCat):
                                                             nodetype="binning",
                                                             input="TopCandidate_pt",
                                                             edges=[0, 200, 400, 600, 1000],
-                                                            content=values_to_return(
-                                                                TrotaScaleFactors_dict[TopCat][wp_cat][TagCat][channel]["error"],
-                                                                TagCat,
-                                                            ),
+                                                            content=TrotaScaleFactors_dict[TopCat][wp_cat][TagCat][channel]["error"],
                                                             flow="clamp",
                                                         ),
                                                     },

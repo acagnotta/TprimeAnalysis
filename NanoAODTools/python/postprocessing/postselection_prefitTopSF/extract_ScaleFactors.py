@@ -4,6 +4,8 @@ import json
 import yaml
 import optparse
 import math
+import correctionlib as cl
+import re
 
 config = {}
 config_paths = os.environ.get('PWD')+'/../config/config.yaml'
@@ -33,7 +35,7 @@ outJsonPath             = f"{outFolder}/{outName}.json"
 
 categories              = ["topmatched", "nonmatched", "other"]
 event_categories        = ["pt0to200", "pt200to400", "pt400to600", "pt600to1000"]
-
+event_categories_ranges = [list(map(int, re.findall(r"\d+", category))) for category in event_categories]
 if not os.path.exists(outFolder):
     os.makedirs(outFolder)
 
@@ -69,7 +71,7 @@ for cat in categories:
                                     }
     if wp_cat in ["Loose", "Tight"]:
         event_categories_skipped    = []
-        for evcat in event_categories:
+        for evcat_idx, evcat in enumerate(event_categories):
             print(f"\nExtracting scale factors for event category: {evcat}")
             workspaceFolder = f"{outputfolder}/workspace_{wp_cat}/{fit_variable}"
             inFilePath      = f"{workspaceFolder}/fitDiagnostics_{evcat}.root"
@@ -108,6 +110,18 @@ for cat in categories:
             if sf:
                 sf_pass_value = sf.getVal()
                 sf_pass_error = sf.getError()
+
+                ######## Modifications due to low statistics ########
+                if (cat == "other"):
+                    sf_pass_value = 1.0
+                    sf_pass_error = 0.0
+                elif (TopCategory in ["Resolved", "Mixed"]) and (evcat == "pt600to1000"):
+                    sf_pass_value = 1.0
+                    sf_pass_error = 0.0
+                elif (TopCategory == "Merged") and (cat == "topmatched") and (evcat == "pt0to200"):
+                    sf_pass_value = 1.0
+                    sf_pass_error = 0.0
+
                 sf_dict[TopCategory][wp_cat][cat]["pass"]["value"].append(sf_pass_value)
                 sf_dict[TopCategory][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
                 print(f"{poi} \t\t= {sf_pass_value:.4f} ± {sf_pass_error:.4f}")
@@ -129,8 +143,12 @@ for cat in categories:
                 print(f"{poi} not found in RooFitResult")
 
     elif wp_cat in ["LooseButNotTight"]:
+        inJsonName                  = f"TrotaScaleFactors_{era}"
+        corrLibFolder               = config["TrotaScaleFactor"]["corrlibfolder"][era]
+        corrLibFilePath             = f"{corrLibFolder}/CorrLib_{inJsonName}.json"
+        ceval                       = cl.CorrectionSet.from_file(corrLibFilePath)
         event_categories_skipped    = []
-        for evcat in event_categories:
+        for evcat_idx, evcat in enumerate(event_categories):
             print(f"\nExtracting scale factors for event category: {evcat}")
             workspaceFolder_Tight   = f"{outputfolder}/workspace_Tight/{fit_variable}"
             inFilePath_Tight        = f"{workspaceFolder_Tight}/fitDiagnostics_{evcat}.root"
@@ -160,10 +178,14 @@ for cat in categories:
             ### SF_pass ###
             ###############
             if sf_Tight and sf_Loose:
-                sf_Tight_pass_value = sf_Tight.getVal()
-                sf_Tight_pass_error = sf_Tight.getError()
-                sf_Loose_pass_value = sf_Loose.getVal()
-                sf_Loose_pass_error = sf_Loose.getError()
+                # sf_Tight_pass_value = sf_Tight.getVal()
+                # sf_Tight_pass_error = sf_Tight.getError()
+                # sf_Loose_pass_value = sf_Loose.getVal()
+                # sf_Loose_pass_error = sf_Loose.getError()
+                sf_Tight_pass_value = ceval["TrotaScaleFactors"].evaluate(TopCategory, "Tight", cat, "pass", "value", (event_categories_ranges[evcat_idx][0]+event_categories_ranges[evcat_idx][1])/2)
+                sf_Tight_pass_error = ceval["TrotaScaleFactors"].evaluate(TopCategory, "Tight", cat, "pass", "error", (event_categories_ranges[evcat_idx][0]+event_categories_ranges[evcat_idx][1])/2)
+                sf_Loose_pass_value = ceval["TrotaScaleFactors"].evaluate(TopCategory, "Loose", cat, "pass", "value", (event_categories_ranges[evcat_idx][0]+event_categories_ranges[evcat_idx][1])/2)
+                sf_Loose_pass_error = ceval["TrotaScaleFactors"].evaluate(TopCategory, "Loose", cat, "pass", "error", (event_categories_ranges[evcat_idx][0]+event_categories_ranges[evcat_idx][1])/2)
 
                 norm_prefit_pass_Tight = norm_prefit_Tight.find(f"pass/{cat}").getVal()
                 norm_prefit_fail_Tight = norm_prefit_Tight.find(f"fail/{cat}").getVal()
@@ -171,12 +193,12 @@ for cat in categories:
                 norm_prefit_fail_Loose = norm_prefit_Loose.find(f"fail/{cat}").getVal()
 
                 if abs(norm_prefit_pass_Loose - norm_prefit_pass_Tight):
-                    sf_pass_value          = (sf_Loose_pass_value * norm_prefit_pass_Loose - sf_Tight_pass_value * norm_prefit_pass_Tight) / (norm_prefit_pass_Loose - norm_prefit_pass_Tight)
-                    sf_pass_error          = math.sqrt((sf_Loose_pass_error * norm_prefit_pass_Loose)**2 + (sf_Tight_pass_error * norm_prefit_pass_Tight)**2) / abs(norm_prefit_pass_Loose - norm_prefit_pass_Tight)
+                    sf_pass_value      = (sf_Loose_pass_value * norm_prefit_pass_Loose - sf_Tight_pass_value * norm_prefit_pass_Tight) / (norm_prefit_pass_Loose - norm_prefit_pass_Tight)
+                    sf_pass_error      = math.sqrt((sf_Loose_pass_error * norm_prefit_pass_Loose)**2 + (sf_Tight_pass_error * norm_prefit_pass_Tight)**2) / abs(norm_prefit_pass_Loose - norm_prefit_pass_Tight)
                 else:
                     print(f"Warning: norm_prefit_pass_Loose={norm_prefit_pass_Loose} and norm_prefit_pass_Tight={norm_prefit_pass_Tight} for {evcat}, cannot calculate SF_pass. Setting SF_pass to 1.0 with zero error.")
-                    sf_pass_value = 1.0
-                    sf_pass_error = 0.0
+                    sf_pass_value      = 1.0
+                    sf_pass_error      = 0.0
 
                 sf_dict[TopCategory][wp_cat][cat]["pass"]["value"].append(sf_pass_value if sf_pass_value > 0 else 1.0)  # if the calculated SF_pass is negative, set it to 1 (no correction), according to BTV recommendations: https://btv-wiki.docs.cern.ch/PerformanceCalibration/fixedWPSFRecommendations/#scale-factor-recommendations-for-event-reweighting
                 sf_dict[TopCategory][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
