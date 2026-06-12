@@ -45,8 +45,8 @@ dict_samples_file       = opt.dict_samples_file
 hist_folder             = opt.hist_folder
 tmpfold                 = opt.tmpfold
 printcutflow            = opt.printcutflow
-do_histos               = False
-do_snapshot             = True
+do_histos               = True
+do_snapshot             = False
 if do_variations:
     do_snapshot         = False
 remote_subfolder_name   = datetime.now().strftime("%Y%m%d") #20231229
@@ -55,7 +55,7 @@ remote_subfolder_name   = datetime.now().strftime("%Y%m%d") #20231229
 
 
 if do_variations == True:
-    variations          = ["nominal", "pu", "jer", "jesTotal", "pdf_total", "QCDScale", "ISR", "FSR", "Trota"]
+    variations          = ["nominal", "pu", "jer", "jesTotal", "pdf_total", "QCDScale", "ISR", "FSR", "TrotaResolved", "TrotaMixed", "TrotaMerged"]
 else :
     variations          = ["nominal"]
 
@@ -112,8 +112,8 @@ branches = [
             "MergedTrotaEventWeightDown",
 
             "TotalTrotaEventWeight",
-            "TotalTrotaEventWeightUp",
-            "TotalTrotaEventWeightDown",
+            # "TotalTrotaEventWeightUp",
+            # "TotalTrotaEventWeightDown",
             "w_nominal", "w_nominal_woTrota", "puWeight", "SFbtag_nominal",
            ]
 
@@ -190,11 +190,29 @@ print("Datasets to process: ", [d.label for d in datasets])
 chain                       = {}
 ntot_events                 = {}
 tchains                     = {}
+outfile_dict                = {}
 for d in datasets:
     if hasattr(d, "components"):
         samples_list        = d.components
     else:
         samples_list        = [d]
+    for s in samples_list:
+        if tmpfold:
+            repohisto_tmp = "/tmp/"+username+"/"
+            if not os.path.exists(repohisto_tmp):
+                os.makedirs(repohisto_tmp)
+            repohisto_tmp = "/tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"
+            if not os.path.exists(repohisto_tmp):
+                os.makedirs(repohisto_tmp)
+            repohisto_tmp = "/tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"+s.label+"/"
+            if not os.path.exists(repohisto_tmp):
+                os.makedirs(repohisto_tmp)
+
+            outfile_path = repohisto_tmp+s.label+'.root'
+        else:
+            outfile_path = repohisto+s.label+'.root'
+
+        outfile_dict[s.label] = outfile_path
     chain[d.label]          = {}
     ntot_events[d.label]    = {}
     tchains[d.label]        = {}
@@ -229,6 +247,9 @@ for d in datasets:
         print("Number of events in the TChain: ", tchains[d.label][s.label].GetEntries())
         print("Number of total events in the TChain (MC only, if Data the number is None): ", ntot_events[d.label][s.label])
 
+print("outfile_dict has following entries: ")
+for k, v in outfile_dict.items():
+    print(f"  {k}: {v}")
 
 ################### utils ###################
 def cut_string(cut):
@@ -436,10 +457,7 @@ def add_TrotaScaleFactors(df, sampleflag, sample_process, TopSF_CorrLibFilePath)
                                                               .Define("MixedTrotaEventWeightDown",                                      "CalculateCategoryTrotaEventWeight(TopMixed_TrotaSFDown, TopMixed_forEvWeight_idx)")\
                                                               .Define("ResolvedTrotaEventWeight",                                       "CalculateCategoryTrotaEventWeight(TopResolved_TrotaSF, TopResolved_forEvWeight_idx)")\
                                                               .Define("ResolvedTrotaEventWeightUp",                                     "CalculateCategoryTrotaEventWeight(TopResolved_TrotaSFUp, TopResolved_forEvWeight_idx)")\
-                                                              .Define("ResolvedTrotaEventWeightDown",                                   "CalculateCategoryTrotaEventWeight(TopResolved_TrotaSFDown, TopResolved_forEvWeight_idx)")\
-                                                              .Define("TotalTrotaEventWeight",                                          "MergedTrotaEventWeight * MixedTrotaEventWeight * ResolvedTrotaEventWeight")\
-                                                              .Define("TotalTrotaEventWeightUp",                                        "MergedTrotaEventWeightUp * MixedTrotaEventWeightUp * ResolvedTrotaEventWeightUp")\
-                                                              .Define("TotalTrotaEventWeightDown",                                      "MergedTrotaEventWeightDown * MixedTrotaEventWeightDown * ResolvedTrotaEventWeightDown")
+                                                              .Define("ResolvedTrotaEventWeightDown",                                   "CalculateCategoryTrotaEventWeight(TopResolved_TrotaSFDown, TopResolved_forEvWeight_idx)")
 
     else:
         df_TrotaScaleFactors            = df
@@ -544,7 +562,7 @@ def bookhisto2D(df, regions_def, var2d, s_cut):
                                     .Histo2D((v._xname+"Vs"+v._yname+"_"+"incl_1TopMer"," ;"+v._xtitle+";"+v._ytitle, v._nxbins, v._xmin, v._xmax, v._nybins, v._ymin, v._ymax), v._xname, v._yname, "w_nominal")
     return h_
 
-def savehisto(d, dict_h, regions_def, var, s_cut):
+def savehisto(d, dict_h, regions_def, var, s_cut, outfile_dict):
     histo = {reg: {v._name: ROOT.TH1D(v._name+"_"+reg+"_"+s_cut," ;"+v._title+"", v._nbins, v._xmin, v._xmax) for v in var} for reg in regions_def.keys()}
     isMC=True
     if "Data" in d.label: isMC = False
@@ -554,33 +572,23 @@ def savehisto(d, dict_h, regions_def, var, s_cut):
         s_list = [d]
     
     for s in s_list:
-        if tmpfold:
-            # repohisto_tmp = "/tmp/"+username+"/"
-            # if not os.path.exists(repohisto_tmp):
-            #     os.makedirs(repohisto_tmp)
-            # repohisto_tmp = "/tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"
-            # if not os.path.exists(repohisto_tmp):
-            #     os.makedirs(repohisto_tmp)
-            # repohisto_tmp = "/tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"+s.label+"/"
-            # if not os.path.exists(repohisto_tmp):
-            #     os.makedirs(repohisto_tmp)
-            
-            base_tmp        = os.environ.get("_CONDOR_SCRATCH_DIR", os.environ.get("TMPDIR", "/tmp"))
-            print("base_tmp:", base_tmp)
-            repohisto_tmp   = os.path.join(
-                base_tmp,
-                os.path.basename(os.path.normpath(hist_folder)),
-                s.label
-            )
+        # if tmpfold:
+        #     repohisto_tmp = "/tmp/"+username+"/"
+        #     if not os.path.exists(repohisto_tmp):
+        #         os.makedirs(repohisto_tmp)
+        #     repohisto_tmp = "/tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"
+        #     if not os.path.exists(repohisto_tmp):
+        #         os.makedirs(repohisto_tmp)
+        #     repohisto_tmp = "/tmp/"+username+"/"+os.path.basename(os.path.normpath(hist_folder))+"/"+s.label+"/"
+        #     if not os.path.exists(repohisto_tmp):
+        #         os.makedirs(repohisto_tmp)
 
-            os.makedirs(repohisto_tmp, exist_ok=True)
+        #     outfile = ROOT.TFile.Open(repohisto_tmp+s.label+'.root', "RECREATE")
+        # else:
+        #     outfile = ROOT.TFile.Open(repohisto+s.label+'.root', "RECREATE")
 
-            outfile_path    = os.path.join(repohisto_tmp, s.label + ".root")
-            print("DEBUG output ROOT file:", outfile_path)
-            outfile         = ROOT.TFile.Open(outfile_path, "RECREATE")
-        else:
-            outfile         = ROOT.TFile.Open(repohisto+s.label+'.root', "RECREATE")
-
+        outfile_path    = outfile_dict[s.label]
+        outfile         = ROOT.TFile.Open(outfile_path, "RECREATE")
         for n, vari in enumerate(variations):
             for reg in regions_def.keys():
                 for v in var:
@@ -820,9 +828,17 @@ for d in datasets:
         df_topsel           = df_topsel.Define("MT_T", "sqrt(2 * Top_pt * PuppiMET_T1_pt_nominal * (1 - cos(Top_phi - PuppiMET_T1_phi_nominal)))")
         df_TrotaSF          = add_TrotaScaleFactors(df_topsel, sampleflag, sample_process, TopSF_CorrLibFilePath_dict[era])
         if do_variations:
-            df_TrotaSF      = df_TrotaSF.Vary("TotalTrotaEventWeight", "RVec<float>{TotalTrotaEventWeightDown, TotalTrotaEventWeightUp}", variationTags=["down", "up"], variationName="Trota")
+            # df_TrotaSF      = df_TrotaSF.Vary("TotalTrotaEventWeight", "RVec<float>{TotalTrotaEventWeightDown, TotalTrotaEventWeightUp}", variationTags=["down", "up"], variationName="Trota")
+            df_TrotaSF      = df_TrotaSF.Vary("ResolvedTrotaEventWeight",   "RVec<float>{ResolvedTrotaEventWeightDown, ResolvedTrotaEventWeightUp}",    variationTags=["down", "up"], variationName="TrotaResolved")\
+                                        .Vary("MixedTrotaEventWeight",      "RVec<float>{MixedTrotaEventWeightDown, MixedTrotaEventWeightUp}",          variationTags=["down", "up"], variationName="TrotaMixed")\
+                                        .Vary("MergedTrotaEventWeight",     "RVec<float>{MergedTrotaEventWeightDown, MergedTrotaEventWeightUp}",        variationTags=["down", "up"], variationName="TrotaMerged")
         else:
             df_TrotaSF      = df_TrotaSF
+
+        if sampleflag:
+            df_TrotaSF      = df_TrotaSF.Define("TotalTrotaEventWeight",        "MergedTrotaEventWeight * MixedTrotaEventWeight * ResolvedTrotaEventWeight")
+                                    #   .Define("TotalTrotaEventWeightUp",        "MergedTrotaEventWeightUp * MixedTrotaEventWeightUp * ResolvedTrotaEventWeightUp")\
+                                    #   .Define("TotalTrotaEventWeightDown",      "MergedTrotaEventWeightDown * MixedTrotaEventWeightDown * ResolvedTrotaEventWeightDown")
 
         ########################## Weights application ##########################
         if sampleflag:
@@ -883,9 +899,9 @@ if do_histos:
             if do_variations:
                 print(h_varied.keys())
                 # print(h_varied[d.label].keys())
-                savehisto(d, h_varied, regions_def, var, s_cut)
+                savehisto(d, h_varied, regions_def, var, s_cut, outfile_dict)
             else:
-                savehisto(d, h, regions_def, var, s_cut)
+                savehisto(d, h, regions_def, var, s_cut, outfile_dict)
         if len(var2d) != 0 :
             savehisto2d(d, h_2D, regions_def, var2d, s_cut)
         print(d.label + " histos saved")

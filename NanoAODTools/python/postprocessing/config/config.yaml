@@ -2,7 +2,11 @@ outputfolder:
   postselector_results: { 
     "2022":         "/eos/user/a/acagnott/DarkMatter/nosynch/run2022_Feb26/",
     "2022EE":       "/eos/user/a/acagnott/DarkMatter/nosynch/run2022EE_Jan26/",
-    "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_wTrotaScaleFactor_AllTopCategories/",
+    # "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_wTrotaScaleFactor_AllTopCategories/",
+    # "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_AllProcesses_PassFail/",
+    # "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_AllProcesses_OnlyPass/",
+    # "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_OnlyTopmatched_PassFail/",
+    "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_OnlyTopmatched_OnlyPass/",
     "2023postBPix": "/eos/user/a/acagnott/DarkMatter/nosynch/run2023postBPix_Jan26/",
     }
   triggerSF_results: { 
@@ -104,7 +108,7 @@ plotting:
     
   systematics:
     {
-      "2022":           [], # "QCDScale"
+      "2022":           [],
       "2022EE":         [],
       "2023":           [],
       "2023postBPix":   []

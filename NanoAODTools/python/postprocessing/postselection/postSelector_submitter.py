@@ -101,7 +101,7 @@ def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_ma
     runner_path = run_folder + "runner.sh"
     run_label   = os.path.basename(os.path.normpath(hist_folder))
     dest_dir    = hist_folder.rstrip("/") + "/plots"
-
+    base_tmp     = "/tmp/" + username
     pycommand = (
         "python3 postSelector.py "
         + f"-d {dataset} "
@@ -123,24 +123,18 @@ def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_ma
         pycommand += " --printcutflow"
 
     with open(runner_path, "w") as f:
-        f.write("#!/usr/bin/env bash\n")
-        f.write("set -eo pipefail\n\n")
-
+        f.write("#!/usr/bin/bash\n")
         f.write('echo "===== Job started ====="\n')
         f.write('echo "Host: $(hostname)"\n')
         f.write('echo "Date: $(date)"\n')
         f.write('echo "User: ${USER:-unknown}"\n')
         f.write('echo "PWD at start: $(pwd)"\n')
-        f.write('echo "_CONDOR_SCRATCH_DIR: ${_CONDOR_SCRATCH_DIR:-not set}"\n')
-        f.write('echo "TMPDIR: ${TMPDIR:-not set}"\n\n')
-
+        
         f.write("cd /afs/cern.ch/user/" + inituser + "/" + username + "/\n")
         f.write("source analysis_TPrime.sh\n")
         f.write("cd python/postprocessing/postselection/\n\n")
 
-        # This must match postSelector.py:
-        # base_tmp = os.environ.get("_CONDOR_SCRATCH_DIR", os.environ.get("TMPDIR", "/tmp"))
-        f.write('base_tmp="${_CONDOR_SCRATCH_DIR:-${TMPDIR:-/tmp}}"\n')
+        f.write(f'base_tmp="{base_tmp}"\n')
         f.write(f'run_label="{run_label}"\n')
         f.write(f'dataset="{dataset}"\n')
         f.write('outdir="${base_tmp}/${run_label}/${dataset}"\n')
@@ -158,18 +152,7 @@ def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_ma
 
         f.write('echo "Running postSelector command:"\n')
         f.write(f'echo "{pycommand}"\n\n')
-
-        f.write("set +e\n")
         f.write(pycommand + "\n")
-        f.write("rc=$?\n")
-        f.write("set -e\n\n")
-
-        f.write('if [ "${rc}" -ne 0 ]; then\n')
-        f.write('    echo "ERROR: postSelector.py failed with exit code ${rc}" >&2\n')
-        f.write('    echo "Not attempting to copy output." >&2\n')
-        f.write('    exit "${rc}"\n')
-        f.write("fi\n\n")
-
         f.write('echo "Checking expected output file: ${outfile}"\n')
         f.write('if [ ! -s "${outfile}" ]; then\n')
         f.write('    echo "ERROR: expected output file does not exist or is empty: ${outfile}" >&2\n')
@@ -179,11 +162,10 @@ def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_ma
         f.write('    ls -lthra "${base_tmp}/${run_label}" || true\n')
         f.write('    echo "Listing expected output directory:" >&2\n')
         f.write('    ls -lthra "${outdir}" || true\n')
-        f.write("    exit 2\n")
         f.write("fi\n\n")
 
         f.write('echo "Copying output to ${destdir}"\n')
-        f.write('cp -v "${outfile}" "${destdir}/"\n\n')
+        f.write('cp "${outfile}" "${destdir}/"\n\n')
 
         f.write('echo "Final destination content:"\n')
         f.write('ls -lthra "${destdir}/"\n\n')
@@ -191,8 +173,6 @@ def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_ma
         f.write('echo "===== Job finished successfully ====="\n')
         f.write('echo "Date: $(date)"\n')
 
-    os.chmod(runner_path, 0o755)
-    
     
     # f = open(run_folder+"runner.sh", "w")
     # f.write("#!/usr/bin/bash\n")
