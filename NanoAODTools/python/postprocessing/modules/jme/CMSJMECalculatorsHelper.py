@@ -19,7 +19,7 @@ versiontag = {
     "2022EE"    :   "Run3-22EFGSep23-Summer22EE-NanoAODv12/2025-10-07",
     "2023"      :   "Run3-23CSep23-Summer23-NanoAODv12/2025-10-07",
     "2023BPix"  :   "Run3-23DSep23-Summer23BPix-NanoAODv12/2025-10-07",
-    "2024"      :   "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15/2025-07-17",
+    "2024"      :   "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15/2026-06-05",
 }
 jestag = {
     "MC":{
@@ -29,13 +29,15 @@ jestag = {
             '2022EE'    : 'Summer22EE_22Sep2023_V3_MC',
             '2023'      : 'Summer23Prompt23_V2_MC', 
             '2023BPix'  : 'Summer23BPixPrompt23_V3_MC',
+            '2024'      : 'Summer24Prompt24_V3_MC',
         },
         'AK4PFPuppi':{
             '2018'      : 'Summer19UL18_V5_MC',
             '2022'      : 'Summer22_22Sep2023_V3_MC',
             '2022EE'    : 'Summer22EE_22Sep2023_V3_MC',
             '2023'      : 'Summer23Prompt23_V2_MC',
-            '2023BPix'  : 'Summer23BPixPrompt23_V3_MC', # place holder still not available 
+            '2023BPix'  : 'Summer23BPixPrompt23_V3_MC',
+            '2024'      : 'Summer24Prompt24_V3_MC',
         }
     },
     "DATA":{
@@ -49,7 +51,8 @@ jestag = {
             '2023_C2'       : 'Summer23Prompt23_V2_DATA',
             '2023_C3'       : 'Summer23Prompt23_V2_DATA',
             '2023_C4'       : 'Summer23Prompt23_V2_DATA',
-            '2023BPix_D'    : 'Summer23BPixPrompt23_V3_DATA', # place holder still not available
+            '2023BPix_D'    : 'Summer23BPixPrompt23_V3_DATA',
+            '2024'          : '',
         },
         'AK4PFPuppi':{
             '2018'          : 'Summer19UL18_V5_DATA',
@@ -61,7 +64,8 @@ jestag = {
             '2023_C2'       : 'Summer23Prompt23_V2_DATA',
             '2023_C3'       : 'Summer23Prompt23_V2_DATA',
             '2023_C4'       : 'Summer23Prompt23_V2_DATA',
-            '2023BPix_D'    : 'Summer23BPixPrompt23_V3_DATA', # place holder still not available
+            '2023BPix_D'    : 'Summer23BPixPrompt23_V3_DATA',
+            '2024'          : '',
         }
     }
 }
@@ -72,14 +76,16 @@ jertag = {
             '2022'      : 'Summer22_22Sep2023_JRV1_MC', 
             '2022EE'    : 'Summer22EE_22Sep2023_JRV1_MC',
             '2023'      : 'Summer23Prompt23_RunCv1234_JRV1_MC', 
-            '2023BPix'  : 'Summer23BPixPrompt23_RunD_JRV1_MC', 
+            '2023BPix'  : 'Summer23BPixPrompt23_RunD_JRV1_MC',
+            '2024'      : 'Summer24Prompt24_JRV1_MC',
         },
         'AK4PFPuppi':{
             '2018'      : 'Summer19UL18_JRV2_MC',
             '2022'      : 'Summer22_22Sep2023_JRV1_MC',
             '2022EE'    : 'Summer22EE_22Sep2023_JRV1_MC',
             '2023'      : 'Summer23Prompt23_RunCv1234_JRV1_MC', 
-            '2023BPix'  : 'Summer23BPixPrompt23_RunD_JRV1_MC', # place holder still not available
+            '2023BPix'  : 'Summer23BPixPrompt23_RunD_JRV1_MC',
+            '2024'      : 'Summer24Prompt24_JRV1_MC',
         }
     }
 }
@@ -114,25 +120,26 @@ def configcreate(isMC=True, year=2022, EE=False, runPeriod="C", jetType="AK4PFPu
     print("year, RunTag, jetType: ", year_, tagver, jetType)
     print("JES :", jestag["MC" if isMC else "DATA"][jetType][year_])
 
-    config = configCls(jsonFile, jetType)
-    config.jecTag = jestag["MC" if isMC else "DATA"][jetType][year_]
+    config          = configCls(jsonFile, jetType)
+    config.jecTag   = jestag["MC" if isMC else "DATA"][jetType][year_]
     config.jecLevel = "L1L2L3Res"
-    if isMC: config.jesUncertainties = ["Total", "AbsoluteMPFBias", "AbsoluteScale", "AbsoluteStat","Fragmentation", "PileUpDataMC", "PileUpPtRef", "RelativeFSR", "RelativeStatFSR", "SinglePionECAL", "SinglePionHCAL", "TimePtEta"]
+    if isMC:
+        config.jesUncertainties = ["Total", "AbsoluteMPFBias", "AbsoluteScale", "AbsoluteStat", "Fragmentation", "PileUpDataMC", "PileUpPtRef", "RelativeFSR", "RelativeStatFSR", "SinglePionECAL", "SinglePionHCAL", "TimePtEta"]
     # print("config.jesUncertainties ", config.jesUncertainties)
     if doJer and isMC:
         print("JER :", jertag["MC" if isMC else "DATA"][jetType][year_])
-        config.jerTag = jertag["MC"][jetType][year_]
-        config.splitJER = False
+        config.jerTag               = jertag["MC"][jetType][year_]
+        config.splitJER             = False
         config.jsonFileSmearingTool = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/jer_smear.json.gz" #path to your json file with jer smearing tool
-        config.smearingToolName = "JERSmear"
+        config.smearingToolName     = "JERSmear"
 
     if "AK8" in jetType:
-        config.jsonFileSubjet = cvmfsPOGpath + tagver + "/jet_jerc.json.gz"
-        config.jetAlgoSubjet = "AK4PFPuppi" if year_ !="2018" else "AK4PFchs"
-        config.jecTagSubjet = jestag["MC" if isMC else "DATA"]["AK4PFPuppi" if year_ !="2018" else "AK4PFchs"][year_]
-        config.jecLevelSubjet = "L1L2L3Res"
+        config.jsonFileSubjet       = cvmfsPOGpath + tagver + "/jet_jerc.json.gz"
+        config.jetAlgoSubjet        = "AK4PFPuppi" if year_ !="2018" else "AK4PFchs"
+        config.jecTagSubjet         = jestag["MC" if isMC else "DATA"]["AK4PFPuppi" if year_ !="2018" else "AK4PFchs"][year_]
+        config.jecLevelSubjet       = "L1L2L3Res"
         config.jsonFileSmearingTool = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/jer_smear.json.gz" #path to your json file with jer smearing tool
-        config.smearingToolName = "JERSmear"
+        config.smearingToolName     = "JERSmear"
     if "AK4" in jetType:
         calc = config.create() # ROOT.JetVariationsCalculator(config.create())
     elif forMET:
