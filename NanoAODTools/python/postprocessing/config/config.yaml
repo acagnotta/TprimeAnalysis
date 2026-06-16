@@ -6,7 +6,8 @@ outputfolder:
     # "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_AllProcesses_PassFail/",
     # "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_AllProcesses_OnlyPass/",
     # "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_OnlyTopmatched_PassFail/",
-    "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_OnlyTopmatched_OnlyPass/",
+    # "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_OnlyTopmatched_OnlyPass/",
+    "2023":         "/eos/user/l/lfavilla/RDF_DManalysis/results_wTrotaScaleFactor/run2023_AllProcesses_PassFail_OnlySelectedTop/",
     "2023postBPix": "/eos/user/a/acagnott/DarkMatter/nosynch/run2023postBPix_Jan26/",
     }
   triggerSF_results: { 

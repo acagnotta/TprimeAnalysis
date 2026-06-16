@@ -87,6 +87,7 @@ branches = [
             # "nJetBtagLoose", "JetBTagLoose_idx", "nJetBtagMedium", "JetBTagMedium_idx",
             # "nGoodJet", "nGoodFatJet", "GoodJet_idx", "GoodFatJet_idx",
             # "MT", "MT_T",
+            "EventTopCategory", "Top_idx",
             "MinDelta_phi", "PuppiMET_T1_pt_nominal", "nVetoElectron", "nVetoMuon", "nJetBtagLoose",
             "TopResolved_TopScore_nominal", "TopMixed_TopScore_nominal", "FatJet_particleNetWithMass_TvsQCD",
             "TopResolved_pt_nominal", "TopMixed_pt_nominal", "FatJet_pt_nominal",
@@ -430,12 +431,15 @@ def add_TrotaScaleFactors(df, sampleflag, sample_process, TopSF_CorrLibFilePath)
         df_NonOverlappingTopCandidates  = df_IndependentTopCandidates.Define("TopMixed_NonOverlappingTo_TopMerged_idx",                 "TopCandidates_NonOverlapping_AcrossTopCategories_idx(TopMerged_Independent_idx, FatJet_eta, FatJet_phi, TopMixed_Independent_idx, TopMixed_eta, TopMixed_phi, 1.2)")\
                                                                      .Define("TopResolved_NonOverlappingTo_TopMerged_idx",              "TopCandidates_NonOverlapping_AcrossTopCategories_idx(TopMerged_Independent_idx, FatJet_eta, FatJet_phi, TopResolved_Independent_idx, TopResolved_eta, TopResolved_phi, 1.2)")\
                                                                      .Define("TopResolved_NonOverlappingTo_TopMergedOrTopMixed_idx",    "TopCandidates_NonOverlapping_AcrossTopCategories_idx(TopMixed_NonOverlappingTo_TopMerged_idx, TopMixed_eta, TopMixed_phi, TopResolved_NonOverlappingTo_TopMerged_idx, TopResolved_eta, TopResolved_phi, 1.2)")\
-                                                                     .Define("TopMerged_forEvWeight_idx",                               "TopMerged_Independent_idx")\
-                                                                     .Define("TopMixed_forEvWeight_idx",                                "TopMixed_NonOverlappingTo_TopMerged_idx")\
-                                                                     .Define("TopResolved_forEvWeight_idx",                             "TopResolved_NonOverlappingTo_TopMergedOrTopMixed_idx")\
+                                                                     .Define("TopMerged_forEvWeight_idx",                               "(EventTopCategory == 3 || EventTopCategory == 4) ? RVec<int>{ (int) Top_idx}: ROOT::VecOps::RVec<int>()")\
+                                                                     .Define("TopMixed_forEvWeight_idx",                                "(EventTopCategory == 2 || EventTopCategory == 5) ? RVec<int>{ (int) Top_idx}: ROOT::VecOps::RVec<int>()")\
+                                                                     .Define("TopResolved_forEvWeight_idx",                             "(EventTopCategory == 1 || EventTopCategory == 6) ? RVec<int>{ (int) Top_idx}: ROOT::VecOps::RVec<int>()")\
                                                                      .Define("nTopMerged_forEvWeight",                                  "static_cast<int>(TopMerged_forEvWeight_idx.size());")\
                                                                      .Define("nTopMixed_forEvWeight",                                   "static_cast<int>(TopMixed_forEvWeight_idx.size());")\
                                                                      .Define("nTopResolved_forEvWeight",                                "static_cast<int>(TopResolved_forEvWeight_idx.size());")
+                                                                    #  .Define("TopMerged_forEvWeight_idx",                               "TopMerged_Independent_idx")\
+                                                                    #  .Define("TopMixed_forEvWeight_idx",                                "TopMixed_NonOverlappingTo_TopMerged_idx")\
+                                                                    #  .Define("TopResolved_forEvWeight_idx",                             "TopResolved_NonOverlappingTo_TopMergedOrTopMixed_idx")\
 
         df_TrotaScaleFactors            = df_NonOverlappingTopCandidates.Define("TopMerged_TrotaSF",                                    f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, FatJet_particleNetWithMass_TvsQCD, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, FatJet_pt_nominal, "{"nominal"}")')\
                                                                         .Define("TopMerged_TrotaSFUp",                                  f'GetTrotaSF("{TopSF_CorrLibFilePath}", "{"Merged"}", TopMerged_process, FatJet_particleNetWithMass_TvsQCD, {Top_Merged_wp["10%"]}, {Top_Merged_wp["5%"]}, FatJet_pt_nominal, "{"up"}")')\
