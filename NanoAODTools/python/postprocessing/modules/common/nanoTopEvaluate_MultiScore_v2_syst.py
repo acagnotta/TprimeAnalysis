@@ -106,23 +106,10 @@ def fill_fj(year, fj_dnn, fj, idx_top, scenario):
         fj_dnn[idx_top, 6]  = fj.deepTag_TvsQCD
         fj_dnn[idx_top, 7]  = fj.deepTag_WvsQCD
         fj_dnn[idx_top, 8]  = fj.eta
+        fj_dnn[idx_top, 9]  = getattr(fj, "mass_"+scenario)
         fj_dnn[idx_top, 10] = fj.phi
-        if scenario == "nominal":
-            fj_dnn[idx_top, 9]  = fj.mass_nominal
-            fj_dnn[idx_top, 11] = fj.pt_nominal
-        elif scenario == "jesTotalup":
-            fj_dnn[idx_top, 9]  = fj.mass_jesTotalup
-            fj_dnn[idx_top, 11] = fj.pt_jesTotalup
-        elif scenario == "jesTotaldown":
-            fj_dnn[idx_top, 9]  = fj.mass_jesTotaldown
-            fj_dnn[idx_top, 11] = fj.pt_jesTotaldown
-        elif scenario == "jerup":
-            fj_dnn[idx_top, 9]  = fj.mass_jerup
-            fj_dnn[idx_top, 11] = fj.pt_jerup
-        elif scenario == "jerdown":
-            fj_dnn[idx_top, 9]  = fj.mass_jerdown
-            fj_dnn[idx_top, 11] = fj.pt_jerdown
-
+        fj_dnn[idx_top, 11]  = getattr(fj, "pt_"+scenario)
+        
     elif year in [2022,2023]: 
         fj_dnn[idx_top, 0]  = fj.area
         fj_dnn[idx_top, 1]  = fj.btagDeepB
@@ -130,150 +117,65 @@ def fill_fj(year, fj_dnn, fj, idx_top, scenario):
         fj_dnn[idx_top, 3]  = fj.particleNetWithMass_TvsQCD
         fj_dnn[idx_top, 4]  = fj.particleNetWithMass_WvsQCD
         fj_dnn[idx_top, 5]  = fj.eta
+        fj_dnn[idx_top, 6]  = getattr(fj, "mass_"+scenario)
         fj_dnn[idx_top, 7]  = fj.phi
-        if scenario == "nominal":
-            fj_dnn[idx_top, 6]  = fj.mass_nominal
-            fj_dnn[idx_top, 8] = fj.pt_nominal
-        elif scenario == "jesTotalup":
-            fj_dnn[idx_top, 6]  = fj.mass_jesTotalup
-            fj_dnn[idx_top, 8] = fj.pt_jesTotalup
-        elif scenario == "jesTotaldown":
-            fj_dnn[idx_top, 6]  = fj.mass_jesTotaldown
-            fj_dnn[idx_top, 8] = fj.pt_jesTotaldown
-        elif scenario == "jerup":
-            fj_dnn[idx_top, 6]  = fj.mass_jerup
-            fj_dnn[idx_top, 8] = fj.pt_jerup
-        elif scenario == "jerdown":
-            fj_dnn[idx_top, 6]  = fj.mass_jerdown
-            fj_dnn[idx_top, 8] = fj.pt_jerdown
+        fj_dnn[idx_top, 8]  = getattr(fj, "pt_"+scenario)
+        
+    elif year in [2024]: 
+        fj_dnn[idx_top, 0]  = fj.area
+        fj_dnn[idx_top, 1]  = fj.globalParT3_Xbb
+        fj_dnn[idx_top, 2]  = fj.particleNetWithMass_TvsQCD
+        fj_dnn[idx_top, 3]  = fj.particleNetWithMass_WvsQCD
+        fj_dnn[idx_top, 4]  = fj.particleNet_QCD
+        fj_dnn[idx_top, 5]  = fj.particleNetWithMass_QCD
+        fj_dnn[idx_top, 6]  = fj.particleNet_XbbVsQCD
+        fj_dnn[idx_top, 7]  = fj.particleNet_XqqVsQCD
+        fj_dnn[idx_top, 8]  = fj.eta
+        fj_dnn[idx_top, 9]  = getattr(fj, "mass_"+scenario)
+        fj_dnn[idx_top, 10] = fj.phi
+        fj_dnn[idx_top, 11] = getattr(fj, "pt_"+scenario)
+        fj_dnn[idx_top, 12] = fj.globalParT3_TopbWev
+        fj_dnn[idx_top, 13] = fj.globalParT3_TopbWmv
+        fj_dnn[idx_top, 14] = fj.globalParT3_TopbWqq
+
     return fj_dnn
 
-def fill_jets(year, jets_dnn, j0, j1, j2, sumjet, fj_phi, fj_eta, idx_top, scenario): 
-    if year==2018:
-        jets_dnn[idx_top, 0, 0] = j0.area
-        jets_dnn[idx_top, 0, 1] = j0.btagDeepB
-        jets_dnn[idx_top, 0, 2] = deltaEta(j0.eta, sumjet.Eta())#j0.#delta eta 3jets-jet
-        jets_dnn[idx_top, 0, 4] = deltaPhi(j0.phi, sumjet.Phi())#j0.#delta phi 3jets-jet
-        jets_dnn[idx_top, 0, 6] = deltaPhi(j0.phi, fj_phi)#j0.#deltaphi fj-jet
-        jets_dnn[idx_top, 0, 7] = deltaEta(j0.eta, fj_eta)#j0.#deltaeta fj-jet
-
-        jets_dnn[idx_top, 1, 0] = j1.area
-        jets_dnn[idx_top, 1, 1] = j1.btagDeepB
-        jets_dnn[idx_top, 1, 2] = deltaEta(j1.eta, sumjet.Eta())
-        jets_dnn[idx_top, 1, 4] = deltaPhi(j1.phi, sumjet.Phi())
-        jets_dnn[idx_top, 1, 6] = deltaPhi(j1.phi, fj_phi)
-        jets_dnn[idx_top, 1, 7] = deltaEta(j1.eta, fj_eta)
-        if scenario == "nominal":
-            jets_dnn[idx_top, 0, 3] = j0.mass_nominal
-            jets_dnn[idx_top, 0, 5] = j0.pt_nominal
-            jets_dnn[idx_top, 1, 3] = j1.mass_nominal
-            jets_dnn[idx_top, 1, 5] = j1.pt_nominal
-        elif scenario == "jesTotalup":
-            jets_dnn[idx_top, 0, 3] = j0.mass_jesTotalup
-            jets_dnn[idx_top, 0, 5] = j0.pt_jesTotalup
-            jets_dnn[idx_top, 1, 3] = j1.mass_jesTotalup
-            jets_dnn[idx_top, 1, 5] = j1.pt_jesTotalup
-        elif scenario == "jesTotaldown":
-            jets_dnn[idx_top, 0, 3] = j0.mass_jesTotaldown
-            jets_dnn[idx_top, 0, 5] = j0.pt_jesTotaldown
-            jets_dnn[idx_top, 1, 3] = j1.mass_jesTotaldown
-            jets_dnn[idx_top, 1, 5] = j1.pt_jesTotaldown
-        elif scenario == "jerup":
-            jets_dnn[idx_top, 0, 3] = j0.mass_jerup
-            jets_dnn[idx_top, 0, 5] = j0.pt_jerup
-            jets_dnn[idx_top, 1, 3] = j1.mass_jerup
-            jets_dnn[idx_top, 1, 5] = j1.pt_jerup
-        elif scenario == "jerdown":
-            jets_dnn[idx_top, 0, 3] = j0.mass_jerdown
-            jets_dnn[idx_top, 0, 5] = j0.pt_jerdown
-            jets_dnn[idx_top, 1, 3] = j1.mass_jerdown
-            jets_dnn[idx_top, 1, 5] = j1.pt_jerdown
-                        
-        if hasattr(j2,"pt"):
-            jets_dnn[idx_top, 2, 0] = j2.area
-            jets_dnn[idx_top, 2, 1] = j2.btagDeepB
-            jets_dnn[idx_top, 2, 2] = deltaEta(j2.eta, sumjet.Eta())#j2.#delta eta fj-jet
-            jets_dnn[idx_top, 2, 4] = deltaPhi(j2.phi, sumjet.Phi())#j2.#delta phi fatjet-jet
-            jets_dnn[idx_top, 2, 6] = deltaPhi(j2.phi, fj_phi)
-            jets_dnn[idx_top, 2, 7] = deltaEta(j2.eta, fj_eta)
-            if scenario == "nominal":
-                jets_dnn[idx_top, 2, 3] = j2.mass_nominal
-                jets_dnn[idx_top, 2, 5] = j2.pt_nominal
-            elif scenario == "jesTotalup":
-                jets_dnn[idx_top, 2, 3] = j2.mass_jesTotalup
-                jets_dnn[idx_top, 2, 5] = j2.pt_jesTotalup
-            elif scenario == "jesTotaldown":
-                jets_dnn[idx_top, 2, 3] = j2.mass_jesTotaldown
-                jets_dnn[idx_top, 2, 5] = j2.pt_jesTotaldown
-            elif scenario == "jerup":
-                jets_dnn[idx_top, 2, 3] = j2.mass_jerup
-                jets_dnn[idx_top, 2, 5] = j2.pt_jerup
-            elif scenario == "jerdown":
-                jets_dnn[idx_top, 2, 3] = j2.mass_jerdown
-                jets_dnn[idx_top, 2, 5] = j2.pt_jerdown
-
+def fill_jets(year, jets_dnn, j0, j1, j2, sumjet, fj_phi, fj_eta, idx_top, scenario):
+    if year in [2018]:
+        jet_btagdiscr = "btagDeepB"
     elif year in [2022,2023]:
-        jets_dnn[idx_top, 0, 0] = j0.area
-        jets_dnn[idx_top, 0, 1] = j0.btagPNetB
-        jets_dnn[idx_top, 0, 2] = deltaEta(j0.eta, sumjet.Eta())#j0.#delta eta 3jets-jet
-        jets_dnn[idx_top, 0, 4] = deltaPhi(j0.phi, sumjet.Phi())#j0.#delta phi 3jets-jet
-        jets_dnn[idx_top, 0, 6] = deltaPhi(j0.phi, fj_phi)#j0.#deltaphi fj-jet
-        jets_dnn[idx_top, 0, 7] = deltaEta(j0.eta, fj_eta)#j0.#deltaeta fj-jet
+        jet_btagdiscr = "btagPNetB"
+    elif year in [2024]:
+        jet_btagdiscr = "btagUParTAK4B"
 
-        jets_dnn[idx_top, 1, 0] = j1.area
-        jets_dnn[idx_top, 1, 1] = j1.btagPNetB
-        jets_dnn[idx_top, 1, 2] = deltaEta(j1.eta, sumjet.Eta())
-        jets_dnn[idx_top, 1, 4] = deltaPhi(j1.phi, sumjet.Phi())
-        jets_dnn[idx_top, 1, 6] = deltaPhi(j1.phi, fj_phi)
-        jets_dnn[idx_top, 1, 7] = deltaEta(j1.eta, fj_eta)
-        if scenario == "nominal":
-            jets_dnn[idx_top, 0, 3] = j0.mass_nominal
-            jets_dnn[idx_top, 0, 5] = j0.pt_nominal
-            jets_dnn[idx_top, 1, 3] = j1.mass_nominal
-            jets_dnn[idx_top, 1, 5] = j1.pt_nominal
-        elif scenario == "jesTotalup":
-            jets_dnn[idx_top, 0, 3] = j0.mass_jesTotalup
-            jets_dnn[idx_top, 0, 5] = j0.pt_jesTotalup
-            jets_dnn[idx_top, 1, 3] = j1.mass_jesTotalup
-            jets_dnn[idx_top, 1, 5] = j1.pt_jesTotalup
-        elif scenario == "jesTotaldown":
-            jets_dnn[idx_top, 0, 3] = j0.mass_jesTotaldown
-            jets_dnn[idx_top, 0, 5] = j0.pt_jesTotaldown
-            jets_dnn[idx_top, 1, 3] = j1.mass_jesTotaldown
-            jets_dnn[idx_top, 1, 5] = j1.pt_jesTotaldown
-        elif scenario == "jerup":
-            jets_dnn[idx_top, 0, 3] = j0.mass_jerup
-            jets_dnn[idx_top, 0, 5] = j0.pt_jerup
-            jets_dnn[idx_top, 1, 3] = j1.mass_jerup
-            jets_dnn[idx_top, 1, 5] = j1.pt_jerup
-        elif scenario == "jerdown":
-            jets_dnn[idx_top, 0, 3] = j0.mass_jerdown
-            jets_dnn[idx_top, 0, 5] = j0.pt_jerdown
-            jets_dnn[idx_top, 1, 3] = j1.mass_jerdown
-            jets_dnn[idx_top, 1, 5] = j1.pt_jerdown
-                        
-        if hasattr(j2,"pt"):
-            jets_dnn[idx_top, 2, 0] = j2.area
-            jets_dnn[idx_top, 2, 1] = j2.btagPNetB
-            jets_dnn[idx_top, 2, 2] = deltaEta(j2.eta, sumjet.Eta())#j2.#delta eta fj-jet
-            jets_dnn[idx_top, 2, 4] = deltaPhi(j2.phi, sumjet.Phi())#j2.#delta phi fatjet-jet
-            jets_dnn[idx_top, 2, 6] = deltaPhi(j2.phi, fj_phi)
-            jets_dnn[idx_top, 2, 7] = deltaEta(j2.eta, fj_eta)
-            if scenario == "nominal":
-                jets_dnn[idx_top, 2, 3] = j2.mass_nominal
-                jets_dnn[idx_top, 2, 5] = j2.pt_nominal
-            elif scenario == "jesTotalup":
-                jets_dnn[idx_top, 2, 3] = j2.mass_jesTotalup
-                jets_dnn[idx_top, 2, 5] = j2.pt_jesTotalup
-            elif scenario == "jesTotaldown":
-                jets_dnn[idx_top, 2, 3] = j2.mass_jesTotaldown
-                jets_dnn[idx_top, 2, 5] = j2.pt_jesTotaldown
-            elif scenario == "jerup":
-                jets_dnn[idx_top, 2, 3] = j2.mass_jerup
-                jets_dnn[idx_top, 2, 5] = j2.pt_jerup
-            elif scenario == "jerdown":
-                jets_dnn[idx_top, 2, 3] = j2.mass_jerdown
-                jets_dnn[idx_top, 2, 5] = j2.pt_jerdown
+    jets_dnn[idx_top, 0, 0] = j0.area
+    jets_dnn[idx_top, 0, 1] = getattr(j0, jet_btagdiscr)
+    jets_dnn[idx_top, 0, 2] = deltaEta(j0.eta, sumjet.Eta())#j0.#delta eta 3jets-jet
+    jets_dnn[idx_top, 0, 3] = getattr(j0, "mass_"+scenario)
+    jets_dnn[idx_top, 0, 4] = deltaPhi(j0.phi, sumjet.Phi())#j0.#delta phi 3jets-jet
+    jets_dnn[idx_top, 0, 5] = getattr(j0, "pt_"+scenario)
+    jets_dnn[idx_top, 0, 6] = deltaPhi(j0.phi, fj_phi)#j0.#deltaphi fj-jet
+    jets_dnn[idx_top, 0, 7] = deltaEta(j0.eta, fj_eta)#j0.#deltaeta fj-jet
+
+    jets_dnn[idx_top, 1, 0] = j1.area
+    jets_dnn[idx_top, 1, 1] = getattr(j1, jet_btagdiscr)
+    jets_dnn[idx_top, 1, 2] = deltaEta(j1.eta, sumjet.Eta())
+    jets_dnn[idx_top, 1, 3] = getattr(j1, "mass_"+scenario)
+    jets_dnn[idx_top, 1, 4] = deltaPhi(j1.phi, sumjet.Phi())
+    jets_dnn[idx_top, 1, 5] = getattr(j1, "pt_"+scenario)
+    jets_dnn[idx_top, 1, 6] = deltaPhi(j1.phi, fj_phi)
+    jets_dnn[idx_top, 1, 7] = deltaEta(j1.eta, fj_eta)
+             
+    if hasattr(j2,"pt"):
+        jets_dnn[idx_top, 2, 0] = j2.area
+        jets_dnn[idx_top, 2, 1] = getattr(j2, jet_btagdiscr)
+        jets_dnn[idx_top, 2, 2] = deltaEta(j2.eta, sumjet.Eta())#j2.#delta eta fj-jet
+        jets_dnn[idx_top, 2, 3] = getattr(j2, "mass_"+scenario)
+        jets_dnn[idx_top, 2, 4] = deltaPhi(j2.phi, sumjet.Phi())#j2.#delta phi fatjet-jet
+        jets_dnn[idx_top, 2, 5] = getattr(j2, "pt_"+scenario)
+        jets_dnn[idx_top, 2, 6] = deltaPhi(j2.phi, fj_phi)
+        jets_dnn[idx_top, 2, 7] = deltaEta(j2.eta, fj_eta)
+        
     return jets_dnn
 
 
@@ -334,6 +236,8 @@ class nanoTopevaluate_MultiScore(Module):
             fj_dnn      = {s: np.zeros((int(len(tophighpt)), 12)) for s in self.scenarios}
         elif self.year in [2022,2023]:
             fj_dnn      = {s: np.zeros((int(len(tophighpt)), 9)) for s in self.scenarios}
+        elif self.year in [2024]:
+            fj_dnn      = {s: np.zeros((int(len(tophighpt)), 15)) for s in self.scenarios}
         jets_dnn    = {s: np.zeros((int(len(tophighpt)), 3, 8)) for s in self.scenarios}
         mass_dnn    = {s: np.zeros((len(tophighpt), 3)) for s in self.scenarios}
         for i, top in enumerate(tophighpt):
