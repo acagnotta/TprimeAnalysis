@@ -52,7 +52,13 @@ jestag = {
             '2023_C3'       : 'Summer23Prompt23_V2_DATA',
             '2023_C4'       : 'Summer23Prompt23_V2_DATA',
             '2023BPix_D'    : 'Summer23BPixPrompt23_V3_DATA',
-            '2024'          : '',
+            '2024_C'          : 'Summer24Prompt24_V3_DATA',
+            '2024_D'          : 'Summer24Prompt24_V3_DATA',
+            '2024_E'          : 'Summer24Prompt24_V3_DATA',
+            '2024_F'          : 'Summer24Prompt24_V3_DATA',
+            '2024_G'          : 'Summer24Prompt24_V3_DATA',
+            '2024_H'          : 'Summer24Prompt24_V3_DATA',
+            '2024_I'          : 'Summer24Prompt24_V3_DATA',
         },
         'AK4PFPuppi':{
             '2018'          : 'Summer19UL18_V5_DATA',
@@ -65,7 +71,13 @@ jestag = {
             '2023_C3'       : 'Summer23Prompt23_V2_DATA',
             '2023_C4'       : 'Summer23Prompt23_V2_DATA',
             '2023BPix_D'    : 'Summer23BPixPrompt23_V3_DATA',
-            '2024'          : '',
+            '2024_C'        : 'Summer24Prompt24_V3_DATA',
+            '2024_D'        : 'Summer24Prompt24_V3_DATA',
+            '2024_E'        : 'Summer24Prompt24_V3_DATA',
+            '2024_F'        : 'Summer24Prompt24_V3_DATA',
+            '2024_G'        : 'Summer24Prompt24_V3_DATA',
+            '2024_H'        : 'Summer24Prompt24_V3_DATA',
+            '2024_I'        : 'Summer24Prompt24_V3_DATA',
         }
     }
 }
