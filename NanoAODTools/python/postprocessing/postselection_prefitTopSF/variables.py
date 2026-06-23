@@ -77,8 +77,8 @@ vars.append(variable(name = "PuppiMET_T1_phi_nominal",  title= "Puppi MET #phi n
 # vars.append(variable(name = "nGoodFatJet",      title = "# GoodFatJet",     nbins = 5,  xmin = -0.5, xmax=4.5))
 vars.append(variable(name = "Jet_btagPNetB",    title = "jet btag score",   nbins = 20, xmin = 0,    xmax = 1,    noUnOvFlowbin = True))
 # vars.append(variable(name = "nJetBtagLoose",    title = "# b-Jet (L) ",     nbins = 5,  xmin = -0.5, xmax = 4.5))
-vars.append(variable(name = "nJetBtagMedium",   title = "# b-Jet (M)",      nbins = 5,  xmin = -0.5, xmax = 4.5))
-vars.append(variable(name = "nJetBtagTight",    title = "# b-Jet (T)",      nbins = 5,  xmin = -0.5, xmax = 4.5))
+# vars.append(variable(name = "nJetBtagMedium",   title = "# b-Jet (M)",      nbins = 5,  xmin = -0.5, xmax = 4.5))
+# vars.append(variable(name = "nJetBtagTight",    title = "# b-Jet (T)",      nbins = 5,  xmin = -0.5, xmax = 4.5))
 # vars.append(variable(name = "MinDelta_phi", title= "min #Delta #phi", nbins = 18, xmin = 0, xmax = math.pi))
 # vars.append(variable(name = "MaxEta_jet", title= "max #eta jet", nbins = 5, xmin = 0, xmax = 5, noUnOvFlowbin=True))
 # vars.append(variable(name = "HT_eventHT", title= "event HT", nbins = 20, xmin = 0, xmax = 2000))
@@ -101,15 +101,15 @@ vars.append(variable(name = "nJetBtagTight",    title = "# b-Jet (T)",      nbin
 # vars.append(variable(name = "FatJet_particleNetWithMass_TvsQCD", title= "Top Score", nbins = 40, xmin = 0, xmax=1, noUnOvFlowbin = True))
 # vars.append(variable(name = "FatJet_msoftdrop_nominal", title= "FatJet m_{SD} [GeV]", nbins = 20, xmin = 70, xmax=110))
 
-vars.append(variable(name="dR_muTopLep_bJetTopLep",   title="dR(#muTopLep, bTopLep)",            nbins=20, xmin=0,          xmax=math.pi,   noUnOvFlowbin = True))
-vars.append(variable(name="dPhi_muTopLep_MET",        title="d#Phi(#muTopLep, MET)",             nbins=20, xmin=-math.pi,   xmax=math.pi,   noUnOvFlowbin = True))
-vars.append(variable(name="dPhi_bJetTopLep_MET",      title="d#Phi(bTopLep, MET)",               nbins=20, xmin=-math.pi,   xmax=math.pi,   noUnOvFlowbin = True))
+# vars.append(variable(name="dR_muTopLep_bJetTopLep",   title="dR(#muTopLep, bTopLep)",            nbins=20, xmin=0,          xmax=math.pi,   noUnOvFlowbin = True))
+# vars.append(variable(name="dPhi_muTopLep_MET",        title="d#Phi(#muTopLep, MET)",             nbins=20, xmin=-math.pi,   xmax=math.pi,   noUnOvFlowbin = True))
+# vars.append(variable(name="dPhi_bJetTopLep_MET",      title="d#Phi(bTopLep, MET)",               nbins=20, xmin=-math.pi,   xmax=math.pi,   noUnOvFlowbin = True))
 
 vars.append(variable(name="BestTopResolved_mass",     title="BestTopResolved mass [GeV]",        nbins=20, xmin=0,          xmax=1000,      noUnOvFlowbin = True))
 vars.append(variable(name="BestTopMixed_mass",        title="BestTopMixed mass [GeV]",           nbins=20, xmin=0,          xmax=1000,      noUnOvFlowbin = True))
 vars.append(variable(name="BestTopMerged_mass",       title="BestTopMerged mass [GeV]",          nbins=20, xmin=0,          xmax=1000,      noUnOvFlowbin = True))
 
-vars.append(variable(name="W_pt",                     title="W p_{T} [GeV]",                     nbins=10, xmin=0,          xmax=250,       noUnOvFlowbin = True))
+# vars.append(variable(name="W_pt",                     title="W p_{T} [GeV]",                     nbins=10, xmin=0,          xmax=250,       noUnOvFlowbin = True))
 vars.append(variable(name="MT_W",                     title="M^{W}_{T} [GeV]",                   nbins=10, xmin=0,          xmax=250,       noUnOvFlowbin = True))
 # vars.append(variable(name="MT_lb",                    title="M^{lb}_{T} [GeV]",                  nbins=20, xmin=0,          xmax=500,       noUnOvFlowbin = True))
 # vars.append(variable(name="MT_toplep",                title="M^{TopLep}_{T} [GeV]",              nbins=20, xmin=0,          xmax=500,       noUnOvFlowbin = True))
@@ -132,13 +132,17 @@ vars2D = []
 ######## REGIONS DEFINITION ########
 ####################################
 
-Top_Resolved_wp = {"10%": 0.1422998,           "5%": 0.29475874,               "1%": 0.59264845,           "0.1%": 0.86580896}
-Top_Mixed_wp    = {"10%": 0.7214655876159668,  "5%": 0.8474694490432739,       "1%": 0.9436638951301575,   "0.1%": 0.9789741635322571}
-Top_Merged_wp   = {"10%": 0.8,                 "5%": 0.9,                      "1%": 1.,                   "0.1%": 1.}
-
+# Top_Resolved_wp = {"10%": 0.1422998,           "5%": 0.29475874,               "1%": 0.59264845,           "0.1%": 0.86580896}
+# Top_Mixed_wp    = {"10%": 0.7214655876159668,  "5%": 0.8474694490432739,       "1%": 0.9436638951301575,   "0.1%": 0.9789741635322571}
+# Top_Merged_wp   = {"10%": 0.8,                 "5%": 0.9,                      "1%": 1.,                   "0.1%": 1.}
+Top_Resolved_wp             = { "10%": 0.425, "5%": 0.625,}
+Top_Mixed_wp                = { "10%": 0.900, "5%": 0.950,}
+Top_Merged_wp               = { "10%": 0.075, "5%": 0.250,}
 
 
 semilepPresel               = ""
+semilepPresel_njg2_nfjeq0   = "nGoodJet>2 && nGoodFatJet==0"
+semilepPresel_njfgeq1       = "nGoodFatJet>0"
 semilepPresel_MET           = "MET_pt>50"
 semilepPresel_MET_W         = "W_pt>150 && MET_pt>50"
 semilepPreselResolved       = "W_pt>150 && MET_pt>50 && dR_bJetTopLep_BestTopResolved>=1.2 && dR_muTopLep_BestTopResolved>=1.2"
@@ -178,6 +182,8 @@ topMerged_Loose_fail                    = f"BestTopMerged_score<{Top_Merged_wp['
 
 regions_Resolved                        = {
                                             "semilepPresel"                                 : semilepPresel,
+                                            "semilepPresel_njg2_nfjeq0"                     : semilepPresel_njg2_nfjeq0,
+                                            "semilepPresel_njfgeq1"                         : semilepPresel_njfgeq1,
                                             "semilepPresel_MET"                             : semilepPresel_MET,
                                             "semilepPresel_MET_W"                           : semilepPresel_MET_W,
                                             "semilepPreselResolved"                         : semilepPreselResolved,
@@ -298,6 +304,8 @@ regions_Resolved                        = {
 
 regions_Mixed                        = {
                                             "semilepPresel"                                 : semilepPresel,
+                                            "semilepPresel_njg2_nfjeq0"                     : semilepPresel_njg2_nfjeq0,
+                                            "semilepPresel_njfgeq1"                         : semilepPresel_njfgeq1,
                                             "semilepPresel_MET"                             : semilepPresel_MET,
                                             "semilepPresel_MET_W"                           : semilepPresel_MET_W,
                                             "semilepPreselMixed"                            : semilepPreselMixed,
@@ -418,6 +426,8 @@ regions_Mixed                        = {
 
 regions_Merged                        = {
                                             "semilepPresel"                                 : semilepPresel,
+                                            "semilepPresel_njg2_nfjeq0"                     : semilepPresel_njg2_nfjeq0,
+                                            "semilepPresel_njfgeq1"                         : semilepPresel_njfgeq1,
                                             "semilepPresel_MET"                             : semilepPresel_MET,
                                             "semilepPresel_MET_W"                           : semilepPresel_MET_W,
                                             "semilepPreselMerged"                           : semilepPreselMerged,

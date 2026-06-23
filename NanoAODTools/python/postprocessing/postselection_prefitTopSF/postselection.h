@@ -26,12 +26,12 @@ using rvec_i = const RVec<int> &;
 using rvec_b = const RVec<bool> &;
 using rvec_rvec_i = const RVec<RVec<int>> &;
 
-const float TopRes_trs_5fpr=  0.29475874; // tight
-const float TopMix_trs_5fpr=  0.8474694490432739; // tight
-const float TopRes_trs_10fpr=  0.1422998; // loose
-const float TopMix_trs_10fpr=  0.7214655876159668; // loose
-const float TopMer_trs_loose=  0.8;//0.94; 0.8 for 2022 correspond to fpr 6% on ttbar
-const float TopMer_trs_tight=  0.9;//0.94; 0.8 for 2022 correspond to fpr 6% on ttbar
+const float TopRes_trs_5fpr=  0.625; // tight
+const float TopMix_trs_5fpr=  0.950; // tight
+const float TopRes_trs_10fpr=  0.425; // loose
+const float TopMix_trs_10fpr=  0.900; // loose
+const float TopMer_trs_loose=  0.075;//0.94; 0.8 for 2022 correspond to fpr 6% on ttbar
+const float TopMer_trs_tight=  0.250;//0.94; 0.8 for 2022 correspond to fpr 6% on ttbar
 const float dR=  0.8;
 //  Top Resolved threshold 2022 training { 'fpr 10': 0.1422998, 'fpr 5': 0.29475874, 'fpr 1': 0.59264845, 'fpr 01': 0.86580896}
 //  Top Mixed threshold 2022 training {"10%": {"thr": 0.7214655876159668,},"5%": {"thr": 0.8474694490432739,},"1%": {"thr": 0.9436638951301575,},"0.1%": {"thr": 0.9789741635322571,}}
