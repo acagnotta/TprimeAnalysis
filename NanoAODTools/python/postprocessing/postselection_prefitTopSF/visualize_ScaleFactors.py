@@ -2,6 +2,8 @@ import json
 import argparse
 import ROOT
 import cmsstyle as CMS
+import os
+import shutil
 ROOT.gROOT.SetBatch()
 ROOT.gStyle.SetOptStat(0)
 
@@ -16,7 +18,10 @@ args = parser.parse_args()
 
 with open(args.json_file) as f:
     data = json.load(f)
-
+if not os.path.exists(os.path.dirname(args.output)):
+    os.makedirs(os.path.dirname(args.output))
+if "www" in args.output:
+    shutil.copy("/eos/user/l/lfavilla/www/index.php", os.path.dirname(args.output))
 block = data[args.TopCategory][args.wp_cat]
 
 xlabels = ["[0,200[", "[200,400[", "[400,600[", "[600,1000)"]

@@ -112,15 +112,15 @@ for cat in categories:
                 sf_pass_error = sf.getError()
 
                 ######## Modifications due to low statistics ########
-                if (cat == "other"):
-                    sf_pass_value = 1.0
-                    sf_pass_error = 0.0
-                elif (TopCategory in ["Resolved", "Mixed"]) and (evcat == "pt600to1000"):
-                    sf_pass_value = 1.0
-                    sf_pass_error = 0.0
-                elif (TopCategory == "Merged") and (cat == "topmatched") and (evcat == "pt0to200"):
-                    sf_pass_value = 1.0
-                    sf_pass_error = 0.0
+                # if (cat == "other"):
+                #     sf_pass_value = 1.0
+                #     sf_pass_error = 0.0
+                # elif (TopCategory in ["Resolved", "Mixed"]) and (evcat == "pt600to1000"):
+                #     sf_pass_value = 1.0
+                #     sf_pass_error = 0.0
+                # elif (TopCategory == "Merged") and (cat == "topmatched") and (evcat == "pt0to200"):
+                #     sf_pass_value = 1.0
+                #     sf_pass_error = 0.0
 
                 sf_dict[TopCategory][wp_cat][cat]["pass"]["value"].append(sf_pass_value)
                 sf_dict[TopCategory][wp_cat][cat]["pass"]["error"].append(sf_pass_error)
