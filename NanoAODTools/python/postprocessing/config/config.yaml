@@ -27,6 +27,7 @@ plotting:
       "2023":           18.063,
       "2023postBPix":   9.693
     }
+
   folder_dict:
     {
       "2022":               "",
@@ -155,3 +156,12 @@ TrotaScaleFactor:
     "2023postBPix": "",
   }
 
+  systematics:
+    {
+      "2022":           ["QCDScale"], # "QCDScale"
+      "2022EE":         [],
+      "2023":           [],
+      "2023postBPix":   []
+    }
+
+  scale_signals: 100
