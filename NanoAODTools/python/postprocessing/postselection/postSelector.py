@@ -159,15 +159,15 @@ regions_def = regions       # ---> see variables.py
 var         = vars          # ---> variables.py
 var2d       = vars2D        # ---> variables.py
     
-Top_Resolved_wp = {"10%": 0.1422998,           "5%": 0.29475874,           "1%": 0.59264845,           "0.1%": 0.86580896}
-Top_Mixed_wp    = {"10%": 0.7214655876159668,  "5%": 0.8474694490432739,   "1%": 0.9436638951301575,   "0.1%": 0.9789741635322571}
-Top_Merged_wp   = {"10%": 0.8,                 "5%": 0.9,                  "1%": 1.,                   "0.1%": 1.} #to double-check these wp values
+Top_Resolved_wp = { "10%": 0.425, "5%": 0.625,}
+Top_Mixed_wp    = { "10%": 0.900, "5%": 0.950,}
+Top_Merged_wp   = { "10%": 0.075, "5%": 0.250,}
 
 TopSF_CorrLibFilePath_dict = {
                                 "2022":             "",
                                 "2022EE":           "",
-                                # "2023":             "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/results/run2023_SemiLep_noJetBTagTight_inside_TopHadrCand_wTopPtWeight_noVetoElectron/ScaleFactors/CorrLib_TrotaScaleFactors_2023.json",
-                                "2023":             "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/corrections/2023/CorrLib_TrotaScaleFactors_2023.json",
+                                # "2023":             "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/corrections/2023/CorrLib_TrotaScaleFactors_2023.json",
+                                "2023":             "/eos/user/l/lfavilla/RDF_DManalysis/TopSF/corrections/2023_NewWPs/CorrLib_TrotaScaleFactors_2023.json",
                                 "2023BPix":         "",
                             }
 
