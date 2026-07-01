@@ -46,7 +46,7 @@ outFilePath             = f"{corrLibFolder}/CorrLib_{outJsonName}.json"
 def select_correct_sf(inputJsonFile, TopCat, wp_cat, TagCat, channel, type):
     output_sf_list = [1.0, 1.0, 1.0, 1.0] if type=="value" else [0.0, 0.0, 0.0, 0.0]  # Default values for the 4 bins
     if TopCat == "Resolved":
-        if wp_cat in ["Loose", "Tight"]:
+        if wp_cat in ["Loose", "LooseButNotTight", "Tight"]:
             if TagCat == "topmatched":
                 output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][0]
                 output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][1]
@@ -64,7 +64,7 @@ def select_correct_sf(inputJsonFile, TopCat, wp_cat, TagCat, channel, type):
                 output_sf_list[3] = output_sf_list[3]
 
     if TopCat == "Mixed":
-        if wp_cat in ["Loose", "Tight"]:
+        if wp_cat in ["Loose", "LooseButNotTight", "Tight"]:
             if TagCat == "topmatched":
                 output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][0]
                 output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][1]
@@ -82,7 +82,7 @@ def select_correct_sf(inputJsonFile, TopCat, wp_cat, TagCat, channel, type):
                 output_sf_list[3] = output_sf_list[3]
 
     if TopCat == "Merged":
-        if wp_cat in ["Loose", "Tight"]:
+        if wp_cat in ["Loose", "LooseButNotTight", "Tight"]:
             if TagCat == "topmatched":
                 output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][4]
                 output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][4]
