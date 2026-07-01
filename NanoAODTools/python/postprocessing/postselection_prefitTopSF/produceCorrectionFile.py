@@ -43,10 +43,84 @@ outJsonName             = f"TrotaScaleFactors_{era}"
 corrLibFolder           = config["TrotaScaleFactor"]["corrlibfolder"][era]
 outFilePath             = f"{corrLibFolder}/CorrLib_{outJsonName}.json"
 
+def select_correct_sf(inputJsonFile, TopCat, wp_cat, TagCat, channel, type):
+    output_sf_list = [1.0, 1.0, 1.0, 1.0] if type=="value" else [0.0, 0.0, 0.0, 0.0]  # Default values for the 4 bins
+    if TopCat == "Resolved":
+        if wp_cat in ["Loose", "Tight"]:
+            if TagCat == "topmatched":
+                output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][0]
+                output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][1]
+                output_sf_list[2] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][5]
+                output_sf_list[3] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][5]
+            elif TagCat == "nonmatched":
+                output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][0]
+                output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][1]
+                output_sf_list[2] = output_sf_list[2]
+                output_sf_list[3] = output_sf_list[3]
+            elif TagCat == "other":
+                output_sf_list[0] = output_sf_list[0]
+                output_sf_list[1] = output_sf_list[1]
+                output_sf_list[2] = output_sf_list[2]
+                output_sf_list[3] = output_sf_list[3]
+
+    if TopCat == "Mixed":
+        if wp_cat in ["Loose", "Tight"]:
+            if TagCat == "topmatched":
+                output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][0]
+                output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][1]
+                output_sf_list[2] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][5]
+                output_sf_list[3] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][5]
+            elif TagCat == "nonmatched":
+                output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][0]
+                output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][1]
+                output_sf_list[2] = output_sf_list[2]
+                output_sf_list[3] = output_sf_list[3]
+            elif TagCat == "other":
+                output_sf_list[0] = output_sf_list[0]
+                output_sf_list[1] = output_sf_list[1]
+                output_sf_list[2] = output_sf_list[2]
+                output_sf_list[3] = output_sf_list[3]
+
+    if TopCat == "Merged":
+        if wp_cat in ["Loose", "Tight"]:
+            if TagCat == "topmatched":
+                output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][4]
+                output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][4]
+                output_sf_list[2] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][5]
+                output_sf_list[3] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][5]
+            elif TagCat == "nonmatched":
+                output_sf_list[0] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][4]
+                output_sf_list[1] = inputJsonFile[TopCat][wp_cat][TagCat][channel][type][4]
+                output_sf_list[2] = output_sf_list[2]
+                output_sf_list[3] = output_sf_list[3]
+            elif TagCat == "other":
+                output_sf_list[0] = output_sf_list[0]
+                output_sf_list[1] = output_sf_list[1]
+                output_sf_list[2] = output_sf_list[2]
+                output_sf_list[3] = output_sf_list[3]
+
+
+    return output_sf_list
+
+def produce_TrotaScaleFactors_dict(inputJsonFile):
+    TrotaScaleFactors_dict = {}
+    for TopCat in inputJsonFile.keys():
+        TrotaScaleFactors_dict[TopCat] = {}
+        for wp_cat in inputJsonFile[TopCat].keys():
+            TrotaScaleFactors_dict[TopCat][wp_cat] = {}
+            for TagCat in inputJsonFile[TopCat][wp_cat].keys():
+                TrotaScaleFactors_dict[TopCat][wp_cat][TagCat] = {}
+                for channel in inputJsonFile[TopCat][wp_cat][TagCat].keys():
+                    TrotaScaleFactors_dict[TopCat][wp_cat][TagCat][channel] = {
+                        "value": select_correct_sf(inputJsonFile, TopCat, wp_cat, TagCat, channel, "value"),
+                        "error": select_correct_sf(inputJsonFile, TopCat, wp_cat, TagCat, channel, "error"),
+                    }
+    return TrotaScaleFactors_dict
+
 os.makedirs(corrLibFolder, exist_ok=True)
 with open(inFilePath, "r") as json_file:
-    TrotaScaleFactors_dict = json.load(json_file)
-
+    inputJsonFile       = json.load(json_file)
+TrotaScaleFactors_dict  = produce_TrotaScaleFactors_dict(inputJsonFile)
 
 def make_topcat_content(TrotaScaleFactors_dict, TopCat):
     return {

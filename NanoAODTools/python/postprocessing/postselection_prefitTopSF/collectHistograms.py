@@ -40,7 +40,7 @@ if not os.path.exists(workspaceSubFolder):
     print(f"Created workspace subfolder: {workspaceSubFolder}")
 
 lumi_unc_dict       = {"2022": 1.014, "2022EE": 1.014, "2023": 1.013, "2023postBPix": 1.013} # https://twiki.cern.ch/twiki/bin/viewauth/CMS/LumiRecommendationsRun3
-event_categories    = ["pt0to200","pt200to400","pt400to600","pt600to1000"]
+event_categories    = ["pt0to200","pt200to400","pt400to600","pt600to1000","pt0to400","pt400to1000"]
 uncertainties       = {
                         "lumi":         [lumi_unc_dict[era],"lnN"],
                         "otherSyst":    [1.5,"lnN"],
@@ -152,26 +152,76 @@ for tag_cat in tag_categories:
     for ev_cat in event_categories:
         for pass_tag in ["pass", "fail"]:
             for unc,unc_tag in uncertainties_tags.items():
-                if tag_cat == "data":
-                    histoname       = f"{fit_variable}_SemiLep_{region}_{ev_cat}_{pass_tag}"
-                    histoname_out   = f"{tag_cat}_{fit_variable}_{ev_cat}_{pass_tag}"
-                    lumi            = 1.0
+                if ev_cat == "pt0to400":
+                    if tag_cat == "data":
+                        histoname1      = f"{fit_variable}_SemiLep_{region}_pt0to200_{pass_tag}"
+                        histoname2      = f"{fit_variable}_SemiLep_{region}_pt200to400_{pass_tag}"
+                        histoname_out   = f"{tag_cat}_{fit_variable}_{ev_cat}_{pass_tag}"
+                        lumi            = 1.0
+                    else:
+                        histoname1      = f"{fit_variable}_SemiLep_{region}_pt0to200_{pass_tag}_{tag_cat}_{unc}"
+                        histoname2      = f"{fit_variable}_SemiLep_{region}_pt200to400_{pass_tag}_{tag_cat}_{unc}"
+                        histoname_out   = f"{tag_cat}_{fit_variable}_{ev_cat}_{pass_tag}_{unc_tag}"
+                        lumi            = config["plotting"]["lumi_dict"][era]
+
+
+                    histo               = None
+                    for histoname in [histoname1, histoname2]:
+                        for component in components_in_cat:
+                            print(f"Looking for histogram: '{histoname}' in component: '{component}'")
+                            if histoname in inputHistograms_dict[component]:
+                                print(f"Found histogram: '{histoname}' in component: '{component}' with integral {inputHistograms_dict[component][histoname].Integral():.1f}")
+                                if histo is None:
+                                    histo   = inputHistograms_dict[component][histoname].Clone(histoname)
+                                else:
+                                    histo.Add(inputHistograms_dict[component][histoname])
+                                print(f"Current integral for '{histoname_out}': {histo.Integral():.1f}")
+
+                elif ev_cat == "pt400to1000":
+                    if tag_cat == "data":
+                        histoname1      = f"{fit_variable}_SemiLep_{region}_pt400to600_{pass_tag}"
+                        histoname2      = f"{fit_variable}_SemiLep_{region}_pt600to1000_{pass_tag}"
+                        histoname_out   = f"{tag_cat}_{fit_variable}_{ev_cat}_{pass_tag}"
+                        lumi            = 1.0
+                    else:
+                        histoname1      = f"{fit_variable}_SemiLep_{region}_pt400to600_{pass_tag}_{tag_cat}_{unc}"
+                        histoname2      = f"{fit_variable}_SemiLep_{region}_pt600to1000_{pass_tag}_{tag_cat}_{unc}"
+                        histoname_out   = f"{tag_cat}_{fit_variable}_{ev_cat}_{pass_tag}_{unc_tag}"
+                        lumi            = config["plotting"]["lumi_dict"][era]
+
+
+                    histo               = None
+                    for histoname in [histoname1, histoname2]:
+                        for component in components_in_cat:
+                            print(f"Looking for histogram: '{histoname}' in component: '{component}'")
+                            if histoname in inputHistograms_dict[component]:
+                                print(f"Found histogram: '{histoname}' in component: '{component}' with integral {inputHistograms_dict[component][histoname].Integral():.1f}")
+                                if histo is None:
+                                    histo   = inputHistograms_dict[component][histoname].Clone(histoname)
+                                else:
+                                    histo.Add(inputHistograms_dict[component][histoname])
+                                print(f"Current integral for '{histoname_out}': {histo.Integral():.1f}")
                 else:
-                    histoname       = f"{fit_variable}_SemiLep_{region}_{ev_cat}_{pass_tag}_{tag_cat}_{unc}"
-                    histoname_out   = f"{tag_cat}_{fit_variable}_{ev_cat}_{pass_tag}_{unc_tag}"
-                    lumi            = config["plotting"]["lumi_dict"][era]
+                    if tag_cat == "data":
+                        histoname       = f"{fit_variable}_SemiLep_{region}_{ev_cat}_{pass_tag}"
+                        histoname_out   = f"{tag_cat}_{fit_variable}_{ev_cat}_{pass_tag}"
+                        lumi            = 1.0
+                    else:
+                        histoname       = f"{fit_variable}_SemiLep_{region}_{ev_cat}_{pass_tag}_{tag_cat}_{unc}"
+                        histoname_out   = f"{tag_cat}_{fit_variable}_{ev_cat}_{pass_tag}_{unc_tag}"
+                        lumi            = config["plotting"]["lumi_dict"][era]
 
 
-                histo               = None
-                for component in components_in_cat:
-                    print(f"Looking for histogram: '{histoname}' in component: '{component}'")
-                    if histoname in inputHistograms_dict[component]:
-                        print(f"Found histogram: '{histoname}' in component: '{component}' with integral {inputHistograms_dict[component][histoname].Integral():.1f}")
-                        if histo is None:
-                            histo   = inputHistograms_dict[component][histoname].Clone(histoname)
-                        else:
-                            histo.Add(inputHistograms_dict[component][histoname])
-                        print(f"Current integral for '{histoname_out}': {histo.Integral():.1f}")
+                    histo               = None
+                    for component in components_in_cat:
+                        print(f"Looking for histogram: '{histoname}' in component: '{component}'")
+                        if histoname in inputHistograms_dict[component]:
+                            print(f"Found histogram: '{histoname}' in component: '{component}' with integral {inputHistograms_dict[component][histoname].Integral():.1f}")
+                            if histo is None:
+                                histo   = inputHistograms_dict[component][histoname].Clone(histoname)
+                            else:
+                                histo.Add(inputHistograms_dict[component][histoname])
+                            print(f"Current integral for '{histoname_out}': {histo.Integral():.1f}")
 
                 histo.Scale(lumi)
                 histo.SetName(histoname_out)

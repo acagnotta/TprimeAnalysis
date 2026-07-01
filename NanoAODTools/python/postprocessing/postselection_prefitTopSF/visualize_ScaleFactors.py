@@ -24,7 +24,7 @@ if "www" in args.output:
     shutil.copy("/eos/user/l/lfavilla/www/index.php", os.path.dirname(args.output))
 block = data[args.TopCategory][args.wp_cat]
 
-xlabels = ["[0,200[", "[200,400[", "[400,600[", "[600,1000)"]
+xlabels = ["[0,200[", "[200,400[", "[400,600[", "[600,1000)", "[0,400[", "[400,1000)"]
 matchings = ["topmatched", "nonmatched", "other"]
 ylabels = ["topmatched", "nonmatched", "other"]
 
@@ -32,8 +32,8 @@ CMS.SetExtraText("Work in Progress")
 CMS.SetLumi("")
 c = CMS.cmsCanvas(
     "c",
-    0, 4,
-    0, 3,
+    0, len(xlabels),
+    0, len(ylabels),
     "",
     "",
     square=CMS.kRectangular,
@@ -44,7 +44,7 @@ c.SetLeftMargin(0.18)    # this is the main fix: your y labels are being cut
 c.SetRightMargin(0.16)   # leave room for the color palette
 c.SetBottomMargin(0.18)
 
-h = ROOT.TH2F("h", "", 4, 0, 4, 3, 0, 3)
+h = ROOT.TH2F("h", "", len(xlabels), 0, len(xlabels), len(ylabels), 0, len(ylabels))
 
 for ix, lab in enumerate(xlabels, start=1):
     h.GetXaxis().SetBinLabel(ix, lab)
@@ -84,7 +84,7 @@ latex.SetTextSize(0.020)
 for iy, m in enumerate(matchings, start=1):
     values = block[m][args.channel]["value"]
     errors = block[m][args.channel]["error"]
-    for ix in range(4):
+    for ix in range(len(xlabels)):
         if values[ix] == 9999.0:  # this is the dummy value we assigned for missing SFs
             content = "N/A"
         else:

@@ -34,7 +34,7 @@ outName                 = f"TrotaScaleFactors_{era}_{TopCategory}"
 outJsonPath             = f"{outFolder}/{outName}.json"
 
 categories              = ["topmatched", "nonmatched", "other"]
-event_categories        = ["pt0to200", "pt200to400", "pt400to600", "pt600to1000"]
+event_categories        = ["pt0to200", "pt200to400", "pt400to600", "pt600to1000", "pt0to400", "pt400to1000"]
 event_categories_ranges = [list(map(int, re.findall(r"\d+", category))) for category in event_categories]
 if not os.path.exists(outFolder):
     os.makedirs(outFolder)

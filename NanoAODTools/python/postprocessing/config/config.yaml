@@ -139,13 +139,10 @@ TrotaScaleFactor:
     
   fit_variable: {
     "ResolvedLoose":                "MT_W",
-    "ResolvedLooseButNotTight":     "MT_W",
     "ResolvedTight":                "MT_W",
     "MixedLoose":                   "MT_W",
-    "MixedLooseButNotTight":        "MT_W",
     "MixedTight":                   "MT_W",
     "MergedLoose":                  "MT_W",
-    "MergedLooseButNotTight":       "MT_W",
     "MergedTight":                  "MT_W",
   }
 
@@ -158,7 +155,7 @@ TrotaScaleFactor:
 
   systematics:
     {
-      "2022":           ["QCDScale"], # "QCDScale"
+      "2022":           [], # "QCDScale"
       "2022EE":         [],
       "2023":           [],
       "2023postBPix":   []
