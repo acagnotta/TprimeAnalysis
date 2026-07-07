@@ -117,6 +117,8 @@ def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_ma
         pycommand += " --noSFbtag"
     if noPuWeight:
         pycommand += " --noPuWeight"
+    if noTopPtWeight:
+        pycommand += " --noTopPtWeight"
     if noTrotaSF:
         pycommand += " --noTrotaSF"
     if printcutflow:

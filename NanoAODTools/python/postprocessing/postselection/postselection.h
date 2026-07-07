@@ -1842,11 +1842,11 @@ RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i T
     error   = trotaSF_corr->evaluate({TopCat, wpTag, TagCat, channel, "error", pt});
 
     // case b: all processes, only pass
-    // if (channel == "fail")
-    // {
-    //   weight = 1.0;
-    //   error = 0.0;
-    // }
+    if (channel == "fail")
+    {
+      weight = 1.0;
+      error = 0.0;
+    }
 
     // case c: only topmatched, pass and fail
     // if (TagCat != "topmatched")
