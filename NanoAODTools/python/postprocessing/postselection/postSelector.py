@@ -55,7 +55,9 @@ remote_subfolder_name   = datetime.now().strftime("%Y%m%d") #20231229
 
 
 if do_variations == True:
-    variations          = ["nominal", "pu", "jer", "jesTotal", "pdf_total", "QCDScale", "ISR", "FSR", "TrotaResolved", "TrotaMixed", "TrotaMerged"]
+    variations          = ["nominal", "pu", "jer", "jesTotal", "pdf_total", "QCDScale", "ISR", "FSR"]
+    if not noTrotaSF:
+        variations      += ["TrotaResolved", "TrotaMixed", "TrotaMerged"]
 else :
     variations          = ["nominal"]
 
@@ -831,7 +833,7 @@ for d in datasets:
         df_topsel           = select_top(df_presel, sampleflag)
         df_topsel           = df_topsel.Define("MT_T", "sqrt(2 * Top_pt * PuppiMET_T1_pt_nominal * (1 - cos(Top_phi - PuppiMET_T1_phi_nominal)))")
         df_TrotaSF          = add_TrotaScaleFactors(df_topsel, sampleflag, sample_process, TopSF_CorrLibFilePath_dict[era])
-        if do_variations:
+        if do_variations and not noTrotaSF:
             # df_TrotaSF      = df_TrotaSF.Vary("TotalTrotaEventWeight", "RVec<float>{TotalTrotaEventWeightDown, TotalTrotaEventWeightUp}", variationTags=["down", "up"], variationName="Trota")
             df_TrotaSF      = df_TrotaSF.Vary("ResolvedTrotaEventWeight",   "RVec<float>{ResolvedTrotaEventWeightDown, ResolvedTrotaEventWeightUp}",    variationTags=["down", "up"], variationName="TrotaResolved")\
                                         .Vary("MixedTrotaEventWeight",      "RVec<float>{MixedTrotaEventWeightDown, MixedTrotaEventWeightUp}",          variationTags=["down", "up"], variationName="TrotaMixed")\
