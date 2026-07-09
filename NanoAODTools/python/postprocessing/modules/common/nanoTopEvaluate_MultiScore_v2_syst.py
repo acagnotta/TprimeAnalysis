@@ -112,7 +112,7 @@ def fill_fj(year, fj_dnn, fj, idx_top, scenario):
         
     elif year in [2022,2023]: 
         fj_dnn[idx_top, 0]  = fj.area
-        fj_dnn[idx_top, 1]  = fj.btagDeepB
+        fj_dnn[idx_top, 1]  = fj.particleNet_XbbVsQCD
         fj_dnn[idx_top, 2]  = fj.particleNetWithMass_QCD
         fj_dnn[idx_top, 3]  = fj.particleNetWithMass_TvsQCD
         fj_dnn[idx_top, 4]  = fj.particleNetWithMass_WvsQCD
@@ -123,20 +123,15 @@ def fill_fj(year, fj_dnn, fj, idx_top, scenario):
         
     elif year in [2024]: 
         fj_dnn[idx_top, 0]  = fj.area
-        fj_dnn[idx_top, 1]  = fj.globalParT3_Xbb
-        fj_dnn[idx_top, 2]  = fj.particleNetWithMass_TvsQCD
-        fj_dnn[idx_top, 3]  = fj.particleNetWithMass_WvsQCD
-        fj_dnn[idx_top, 4]  = fj.particleNet_QCD
-        fj_dnn[idx_top, 5]  = fj.particleNetWithMass_QCD
-        fj_dnn[idx_top, 6]  = fj.particleNet_XbbVsQCD
-        fj_dnn[idx_top, 7]  = fj.particleNet_XqqVsQCD
-        fj_dnn[idx_top, 8]  = fj.eta
-        fj_dnn[idx_top, 9]  = getattr(fj, "mass_"+scenario)
-        fj_dnn[idx_top, 10] = fj.phi
-        fj_dnn[idx_top, 11] = getattr(fj, "pt_"+scenario)
-        fj_dnn[idx_top, 12] = fj.globalParT3_TopbWev
-        fj_dnn[idx_top, 13] = fj.globalParT3_TopbWmv
-        fj_dnn[idx_top, 14] = fj.globalParT3_TopbWqq
+        fj_dnn[idx_top, 1]  = fj.globalParT3_Xbb / (fj.globalParT3_Xbb + fj.globalParT3_QCD)
+        fj_dnn[idx_top, 2]  = fj.globalParT3_QCD
+        fj_dnn[idx_top, 3]  = fj.globalParT3_withMassTopvsQCD
+        fj_dnn[idx_top, 4]  = fj.globalParT3_withMassWvsQCD
+        fj_dnn[idx_top, 5]  = fj.eta
+        fj_dnn[idx_top, 6]  = getattr(fj, "mass_"+scenario)
+        fj_dnn[idx_top, 7]  = fj.phi
+        fj_dnn[idx_top, 8]  = getattr(fj, "pt_"+scenario)
+
 
     return fj_dnn
 
@@ -186,8 +181,8 @@ class nanoTopevaluate_MultiScore(Module):
     def __init__(self, modelMix_path, modelRes_path, isMC=1, year=2018):
         self.modelMix_path = modelMix_path
         self.modelRes_path = modelRes_path
-        self.modelMix      = tf.keras.models.load_model(modelMix_path)
-        self.modelRes      = tf.keras.models.load_model(modelRes_path)
+        self.modelMix      = tf.keras.models.load_model(modelMix_path, compile=False)
+        self.modelRes      = tf.keras.models.load_model(modelRes_path, compile=False)
         self.isMC = isMC
         self.year = year
         if isMC : self.scenarios = ["nominal", "jesTotalup", "jesTotaldown", "jerup", "jerdown"]
@@ -234,10 +229,9 @@ class nanoTopevaluate_MultiScore(Module):
         # loop su High Pt candidates per valutare lo score con i modelli corrispondenti
         if self.year == 2018:
             fj_dnn      = {s: np.zeros((int(len(tophighpt)), 12)) for s in self.scenarios}
-        elif self.year in [2022,2023]:
+        elif self.year in [2022,2023,2024]:
             fj_dnn      = {s: np.zeros((int(len(tophighpt)), 9)) for s in self.scenarios}
-        elif self.year in [2024]:
-            fj_dnn      = {s: np.zeros((int(len(tophighpt)), 15)) for s in self.scenarios}
+
         jets_dnn    = {s: np.zeros((int(len(tophighpt)), 3, 8)) for s in self.scenarios}
         mass_dnn    = {s: np.zeros((len(tophighpt), 3)) for s in self.scenarios}
         for i, top in enumerate(tophighpt):
@@ -268,30 +262,32 @@ class nanoTopevaluate_MultiScore(Module):
 
 
         ####### SCORES ####### 
-        scores = []
+        scores                  = {}
         if len(tophighpt)!=0:
             # Concatenate jets_dnn[s] along the first axis
-            jets_dnn_concatenated = np.concatenate(list(jets_dnn.values()), axis=0)
-            fj_dnn_concatenated = np.concatenate(list(fj_dnn.values()), axis=0)
-            mass_dnn_concatenated = np.concatenate(list(mass_dnn.values()), axis=0)
+            jets_dnn_concatenated   = np.concatenate(list(jets_dnn.values()), axis=0)
+            fj_dnn_concatenated     = np.concatenate(list(fj_dnn.values()), axis=0)
+            mass_dnn_concatenated   = np.concatenate(list(mass_dnn.values()), axis=0)
 
-            # scores_ = model({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy().flatten().tolist()
-            scores_ = self.modelMix({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy().flatten().tolist()
-            scores = {}
+            if self.year in [2018,2022,2023]:
+                scores_         = self.modelMix({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy().flatten().tolist()
+            elif self.year in [2024]:
+                scores_True     = self.modelMix({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy()[:,1].flatten()
+                scores_False    = self.modelMix({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy()[:,0].flatten()
+                scores_QCD      = self.modelMix({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy()[:,2].flatten()
+                scores_         = (scores_True / (scores_True+scores_QCD)).tolist() # True/(True+QCD)
+            
             for i, s in enumerate(self.scenarios):
-                scores[s] = scores_[0 + i*len(tophighpt): len(tophighpt)+i*len(tophighpt)]
+                scores[s]       = scores_[0 + i*len(tophighpt): len(tophighpt)+i*len(tophighpt)]
         else:
-            # top_score2  = []
             scores = {s : [] for s in self.scenarios}
 
         # Branch the scores calculated #
-        # self.out.fillBranch("TopHighPt_score2", top_score2)
         for s in self.scenarios:
             self.out.fillBranch(f"TopMixed_TopScore_"+s, scores[s])
 
 
         # loop su Low Pt candidates per valutare lo score con i modelli corrispondenti
-        
         jets_dnn = {s: np.zeros((int(len(toplowpt)), 3, 8)) for s in self.scenarios}        
         for i, top in enumerate(toplowpt):
             j0, j1, j2 = goodjets[top.idxJet0],goodjets[top.idxJet1],goodjets[top.idxJet2]
@@ -301,15 +297,22 @@ class nanoTopevaluate_MultiScore(Module):
             for s in self.scenarios:
                 jets_dnn[s] = fill_jets(self.year, jets_dnn[s], j0, j1, j2, sumjet, fj.Phi(), fj.Eta(), i, scenario = s)
 
+        scores                  = {}
         if len(toplowpt)!=0:
             jets_dnn_concatenated = np.concatenate(list(jets_dnn.values()), axis=0)
-            top_score_DNN_ = self.modelRes({"jet0": jets_dnn_concatenated[:,0,:-2], "jet1": jets_dnn_concatenated[:,1,:-2], "jet2": jets_dnn_concatenated[:,2,:-2]}).numpy().flatten().tolist()
-            top_score_DNN = {}
+            if self.year in [2018,2022,2023]:
+                scores_         = self.modelRes({"jet0": jets_dnn_concatenated[:,0,:-2], "jet1": jets_dnn_concatenated[:,1,:-2], "jet2": jets_dnn_concatenated[:,2,:-2]}).numpy().flatten().tolist()
+            elif self.year in [2024]:
+                scores_True     = self.modelRes({"jet": jets_dnn_concatenated}).numpy()[:,1].flatten()
+                scores_False    = self.modelRes({"jet": jets_dnn_concatenated}).numpy()[:,0].flatten()
+                scores_QCD      = self.modelRes({"jet": jets_dnn_concatenated}).numpy()[:,2].flatten()
+                scores_         = (scores_True / (scores_True+scores_QCD)).tolist() # True/(True+QCD)
+
             for i, s in enumerate(self.scenarios):
-                top_score_DNN[s] = top_score_DNN_[0 + i*len(toplowpt): len(toplowpt)+i*len(toplowpt)]
+                scores[s] = scores_[0 + i*len(toplowpt): len(toplowpt)+i*len(toplowpt)]
         else:
-            top_score_DNN = {s: [] for s in self.scenarios}
+            scores = {s: [] for s in self.scenarios}
 
         for s in self.scenarios:
-            self.out.fillBranch("TopResolved_TopScore_"+s, top_score_DNN[s])
+            self.out.fillBranch("TopResolved_TopScore_"+s, scores[s])
         return True
