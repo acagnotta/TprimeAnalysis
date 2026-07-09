@@ -246,9 +246,9 @@ if submit:
                 if sample.year not in [2024]:
                     modules_list.append(f'BTagSF(year={sample.year},EE={sample.EE})')
                 if calculate_systematics:
-                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType=AK4PFPuppi,forMET=False,doJer=True),jetType=AK4PFPuppi,isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
-                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType=AK8PFPuppi,forMET=False,doJer=True),jetType=AK8PFPuppi,isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
-                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType=AK4PFPuppi,forMET=True,doJer=True),jetType=AK4PFPuppi,isMC={isMC},forMET=True,PuppiMET=True,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType="AK4PFPuppi",forMET=False,doJer=True),jetType="AK4PFPuppi",isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType="AK8PFPuppi",forMET=False,doJer=True),jetType="AK8PFPuppi",isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType="AK4PFPuppi",forMET=True,doJer=True),jetType="AK4PFPuppi",isMC={isMC},forMET=True,PuppiMET=True,addHEM2018Issue=False,NanoAODv=12)')
                 modules_list.append(f'GenPart_MomFirstCp(flavour="-5,-4,-3,-2,-1,1,2,3,4,5,6,-6,24,-24")')
                 modules_list.append(f'nanoprepro()')
                 modules_list.append(f'nanoTopcand(isMC={isMC})')
@@ -268,9 +268,9 @@ if submit:
                 modules_list.append(f'JetVetoMaps_run3(year={sample.year},EE={sample.EE})')
                 modules_list.append(f'preselection()')
                 if calculate_systematics:
-                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType=AK4PFPuppi,forMET=False,doJer=True),jetType=AK4PFPuppi,isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
-                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType=AK8PFPuppi,forMET=False,doJer=True),jetType=AK8PFPuppi,isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
-                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType=AK4PFPuppi,forMET=True,doJer=True),jetType=AK4PFPuppi,isMC={isMC},forMET=True,PuppiMET=True,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType="AK4PFPuppi",forMET=False,doJer=True),jetType="AK4PFPuppi",isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType="AK8PFPuppi",forMET=False,doJer=True),jetType="AK8PFPuppi",isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType="AK4PFPuppi",forMET=True,doJer=True),jetType="AK4PFPuppi",isMC={isMC},forMET=True,PuppiMET=True,addHEM2018Issue=False,NanoAODv=12)')
                 modules_list.append(f'nanoTopcand(isMC={isMC})')
                 modules_list.append(f'globalvar()')
                 modules_list.append(f'nanoTopevaluate_MultiScore(isMC={isMC},year={sample.year},modelMix_path="{modelMix_path}",modelRes_path="{modelRes_path}")')
