@@ -34,7 +34,7 @@ class PUreweight(Module):
             eratag              = "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15"
             self.jsonName       = "puWeights_CDEFGHI.json.gz"
             self.key            = "Collisions24_CDEFGHI_goldenJSON"
-            self.CorrVersion    = "2026-05-06"
+            self.CorrVersion    = "2026-04-15"
 
         else:
             print("Please specify the correct era tag for the PU weights. 2022_Summer22 - 2022_Summer22EE - 2023_Summer23 - 2023_Summer23BPix - 2024.")
