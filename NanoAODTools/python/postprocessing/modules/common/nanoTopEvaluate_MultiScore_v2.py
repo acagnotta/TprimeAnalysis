@@ -56,20 +56,15 @@ def fill_fj(year, fj_dnn, fj, idx_top):
 
     elif year in [2024]: 
         fj_dnn[idx_top, 0]  = fj.area
-        fj_dnn[idx_top, 1]  = fj.globalParT3_Xbb
-        fj_dnn[idx_top, 2]  = fj.particleNetWithMass_TvsQCD
-        fj_dnn[idx_top, 3]  = fj.particleNetWithMass_WvsQCD
-        fj_dnn[idx_top, 4]  = fj.particleNet_QCD
-        fj_dnn[idx_top, 5]  = fj.particleNetWithMass_QCD
-        fj_dnn[idx_top, 6]  = fj.particleNet_XbbVsQCD
-        fj_dnn[idx_top, 7]  = fj.particleNet_XqqVsQCD
-        fj_dnn[idx_top, 8]  = fj.eta
-        fj_dnn[idx_top, 9]  = fj.mass
-        fj_dnn[idx_top, 10] = fj.phi
-        fj_dnn[idx_top, 11] = fj.pt
-        fj_dnn[idx_top, 12] = fj.globalParT3_TopbWev
-        fj_dnn[idx_top, 13] = fj.globalParT3_TopbWmv
-        fj_dnn[idx_top, 14] = fj.globalParT3_TopbWqq
+        fj_dnn[idx_top, 1]  = fj.globalParT3_Xbb / (fj.globalParT3_Xbb + fj.globalParT3_QCD)
+        fj_dnn[idx_top, 2]  = fj.globalParT3_QCD
+        fj_dnn[idx_top, 3]  = fj.globalParT3_withMassTopvsQCD
+        fj_dnn[idx_top, 4]  = fj.globalParT3_withMassWvsQCD
+        fj_dnn[idx_top, 5]  = fj.eta
+        fj_dnn[idx_top, 6]  = fj.mass
+        fj_dnn[idx_top, 7]  = fj.phi
+        fj_dnn[idx_top, 8]  = fj.pt
+
     
     return fj_dnn
 
@@ -117,8 +112,8 @@ class nanoTopevaluate_MultiScore(Module):
     def __init__(self, modelMix_path, modelRes_path, isMC=1, year=2018):
         self.modelMix_path = modelMix_path
         self.modelRes_path = modelRes_path
-        self.modelMix      = tf.keras.models.load_model(modelMix_path)
-        self.modelRes      = tf.keras.models.load_model(modelRes_path)
+        self.modelMix      = tf.keras.models.load_model(modelMix_path, compile=False)
+        self.modelRes      = tf.keras.models.load_model(modelRes_path, compile=False)
         self.isMC = isMC
         self.year = year
         # print(self.year)  
@@ -164,10 +159,9 @@ class nanoTopevaluate_MultiScore(Module):
         # loop su High Pt candidates per valutare lo score con i modelli corrispondenti
         if self.year == 2018:
             fj_dnn      = np.zeros((int(len(tophighpt)), 12))
-        elif self.year in [2022,2023]:
+        elif self.year in [2022,2023,2024]:
             fj_dnn      = np.zeros((int(len(tophighpt)), 9))
-        elif self.year in [2024]:
-            fj_dnn      = np.zeros((int(len(tophighpt)), 15))
+
         jets_dnn    = np.zeros((int(len(tophighpt)), 3, 8))
         mass_dnn    = np.zeros((len(tophighpt), 3))
         for i, top in enumerate(tophighpt):
@@ -197,20 +191,23 @@ class nanoTopevaluate_MultiScore(Module):
 
         ####### SCORES ####### 
         # Calculate Scores for several models #
-        scores = []
+        scores                  = []
         if len(tophighpt)!=0:
-            scores = self.modelMix({"fatjet": fj_dnn, "jet": jets_dnn, "top": mass_dnn}).numpy().flatten().tolist()
+            if self.year in [2018,2022,2023]:
+                scores          = self.modelMix({"fatjet": fj_dnn, "jet": jets_dnn, "top": mass_dnn}).numpy().flatten().tolist()
+            elif self.year in [2024]:
+                scores_True     = self.modelMix({"fatjet": fj_dnn, "jet": jets_dnn, "top": mass_dnn}).numpy()[:,1].flatten()
+                scores_False    = self.modelMix({"fatjet": fj_dnn, "jet": jets_dnn, "top": mass_dnn}).numpy()[:,0].flatten()
+                scores_QCD      = self.modelMix({"fatjet": fj_dnn, "jet": jets_dnn, "top": mass_dnn}).numpy()[:,2].flatten()
+                scores          = (scores_True / (scores_True+scores_QCD)).tolist() # True/(True+QCD)
         else:
-            # top_score2  = []
-            scores = []
+            scores              = []
 
         # Branch the scores calculated #
-        # self.out.fillBranch("TopHighPt_score2", top_score2)
         self.out.fillBranch(f"TopMixed_TopScore", scores)
 
 
         # loop su Low Pt candidates per valutare lo score con i modelli corrispondenti
-        
         jets_dnn = np.zeros((int(len(toplowpt)), 3, 8))        
         for i, top in enumerate(toplowpt):
             j0, j1, j2 = goodjets[top.idxJet0],goodjets[top.idxJet1],goodjets[top.idxJet2]
@@ -218,10 +215,17 @@ class nanoTopevaluate_MultiScore(Module):
             fj.SetPtEtaPhiM(0,0,0,0)
             sumjet = j0.p4()+j1.p4()+j2.p4()
             jets_dnn = fill_jets(self.year, jets_dnn, j0, j1, j2, sumjet, fj.Phi(), fj.Eta(), i)
+        scores = []
         if len(toplowpt)!=0:
-            top_score_DNN = self.modelRes({"jet0": jets_dnn[:,0,:-2], "jet1": jets_dnn[:,1,:-2], "jet2": jets_dnn[:,2,:-2]}).numpy().flatten().tolist()
+            if self.year in [2018,2022,2023]:
+                scores          = self.modelRes({"jet0": jets_dnn[:,0,:-2], "jet1": jets_dnn[:,1,:-2], "jet2": jets_dnn[:,2,:-2]}).numpy().flatten().tolist()
+            elif self.year in [2024]:
+                scores_True     = self.modelRes({"jet": jets_dnn}).numpy()[:,1].flatten()
+                scores_False    = self.modelRes({"jet": jets_dnn}).numpy()[:,0].flatten()
+                scores_QCD      = self.modelRes({"jet": jets_dnn}).numpy()[:,2].flatten()
+                scores          = (scores_True / (scores_True+scores_QCD)).tolist() # True/(True+QCD)
         else:
-            top_score_DNN = []
+            scores = []
+        self.out.fillBranch("TopResolved_TopScore", scores)
 
-        self.out.fillBranch("TopResolved_TopScore", top_score_DNN)
         return True
