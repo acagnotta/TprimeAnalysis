@@ -44,45 +44,46 @@ class jetId(Module):
 
     def analyze(self, event):
         for collection in ["Jet", "FatJet"]:
+            TightFlag           = "AK4PUPPI_Tight" if collection=="Jet" else "AK8PUPPI_Tight"
+            LepVetoFlag         = "AK4PUPPI_TightLeptonVeto" if collection=="Jet" else "AK8PUPPI_TightLeptonVeto"
             jets                = Collection(event, collection)
             jet_Ids             = array('B', getattr(event, f"n{collection}")*[0]) # Note: UChar_t is uppercase 'B' in python array
             jet_TightIds        = array('B', getattr(event, f"n{collection}")*[0]) # Note: UChar_t is uppercase 'B' in python array
             jet_TightLepVetoIds = array('B', getattr(event, f"n{collection}")*[0]) # Note: UChar_t is uppercase 'B' in python array
         
             for ijet, jet in enumerate(jets):
-                multiplicity = jet.chMultiplicity + jet.neMultiplicity
+                multiplicity                = jet.chMultiplicity + jet.neMultiplicity
 
-                passTight = self.evaluator["AK4PUPPI_Tight" if collection=="Jet" else "AK8PUPPI_Tight"].evaluate(
-                    jet.eta,
-                    jet.chHEF,
-                    jet.neHEF,
-                    jet.chEmEF,
-                    jet.neEmEF,
-                    jet.muEF,
-                    jet.chMultiplicity,
-                    jet.neMultiplicity,
-                    multiplicity
-                )
-
-                passTightLepVeto = self.evaluator["AK4PUPPI_TightLeptonVeto" if collection=="Jet" else "AK8PUPPI_TightLeptonVeto"].evaluate(
-                    jet.eta,
-                    jet.chHEF,
-                    jet.neHEF,
-                    jet.chEmEF,
-                    jet.neEmEF,
-                    jet.muEF,
-                    jet.chMultiplicity,
-                    jet.neMultiplicity,
-                    multiplicity
-                )
+                passTight                   = self.evaluator[TightFlag].evaluate(
+                                                                                    jet.eta,
+                                                                                    jet.chHEF,
+                                                                                    jet.neHEF,
+                                                                                    jet.chEmEF,
+                                                                                    jet.neEmEF,
+                                                                                    jet.muEF,
+                                                                                    jet.chMultiplicity,
+                                                                                    jet.neMultiplicity,
+                                                                                    multiplicity
+                                                                                    )
+                passTightLepVeto            = self.evaluator[LepVetoFlag].evaluate(
+                                                                                    jet.eta,
+                                                                                    jet.chHEF,
+                                                                                    jet.neHEF,
+                                                                                    jet.chEmEF,
+                                                                                    jet.neEmEF,
+                                                                                    jet.muEF,
+                                                                                    jet.chMultiplicity,
+                                                                                    jet.neMultiplicity,
+                                                                                    multiplicity
+                                                                                    )
                 
                 jet_Ids[ijet]               = int(passTight)*2 + int(passTightLepVeto)*4
                 jet_TightIds[ijet]          = int(passTight)
                 jet_TightLepVetoIds[ijet]   = int(passTightLepVeto)
 
 
-        self.out.fillBranch(f"{collection}_jetId",                  jet_Ids)
-        self.out.fillBranch(f"{collection}_passJetIdTight",         jet_TightIds)
-        self.out.fillBranch(f"{collection}_passJetIdTightLepVeto",  jet_TightLepVetoIds)
+            self.out.fillBranch(f"{collection}_jetId",                  jet_Ids)
+            self.out.fillBranch(f"{collection}_passJetIdTight",         jet_TightIds)
+            self.out.fillBranch(f"{collection}_passJetIdTightLepVeto",  jet_TightLepVetoIds)
 
         return True
