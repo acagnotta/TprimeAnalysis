@@ -112,7 +112,7 @@ def fill_fj(year, fj_dnn, fj, idx_top, scenario):
         
     elif year in [2022,2023]: 
         fj_dnn[idx_top, 0]  = fj.area
-        fj_dnn[idx_top, 1]  = fj.particleNet_XbbVsQCD
+        fj_dnn[idx_top, 1]  = fj.btagDeepB
         fj_dnn[idx_top, 2]  = fj.particleNetWithMass_QCD
         fj_dnn[idx_top, 3]  = fj.particleNetWithMass_TvsQCD
         fj_dnn[idx_top, 4]  = fj.particleNetWithMass_WvsQCD
