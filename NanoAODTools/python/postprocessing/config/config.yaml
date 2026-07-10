@@ -163,6 +163,7 @@ TrotaScaleFactor:
       "2022":           [], # "QCDScale"
       "2022EE":         [],
       "2023":           [],
+      "2023":           ["TrotaResolved", "TrotaMixed", "TrotaMerged"],  # "QCDScale"
       "2023postBPix":   []
     }
 
