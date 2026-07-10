@@ -780,7 +780,7 @@ WJets_2jets_2022.components  = [WJets_2jets0J_2022, WJets_2jets1J_2022, WJets_2j
 
 #######################################   VLQ T signals   #######################################
 TprimeToTZ_700_2022           = sample(ROOT.kGreen, 1, 1001, "T#rightarrow tZ M700GeV", "TprimeToTZ_700_2022")
-TprimeToTZ_700_2022.sigma     = 0.01912 # pb
+TprimeToTZ_700_2022.sigma     = 0.07804 #pb  # questa è 2018 non 2022
 TprimeToTZ_700_2022.year      = 2022
 TprimeToTZ_700_2022.dataset   = '/TprimeBtoTZ-LH_Par-M-700_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM'
 TprimeToTZ_700_2022.EE        = 0
@@ -798,7 +798,7 @@ TprimeToTZ_900_2022.dataset   = ''
 TprimeToTZ_900_2022.EE        = 0
 
 TprimeToTZ_1000_2022           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1000GeV", "TprimeToTZ_1000_2022")
-TprimeToTZ_1000_2022.sigma     = 0.01518 # pb
+TprimeToTZ_1000_2022.sigma     = 0.01362 #pb  # questa è 2018 non 2022
 TprimeToTZ_1000_2022.year      = 2022
 TprimeToTZ_1000_2022.dataset   = '/TprimeBtoTZ-LH_Par-M-1000_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM'
 TprimeToTZ_1000_2022.EE        = 0
@@ -810,7 +810,7 @@ TprimeToTZ_1100_2022.dataset   = ''
 TprimeToTZ_1100_2022.EE        = 0
 
 TprimeToTZ_1200_2022           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1200GeV", "TprimeToTZ_1200_2022")
-TprimeToTZ_1200_2022.sigma     = 0.0122 # pb
+TprimeToTZ_1200_2022.sigma     = 0.005113 #pb  # questa è 2018 non 2022
 TprimeToTZ_1200_2022.year      = 2022
 TprimeToTZ_1200_2022.dataset   = '/TprimeBtoTZ-LH_Par-M-1200_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM'
 TprimeToTZ_1200_2022.EE        = 0
@@ -828,7 +828,7 @@ TprimeToTZ_1400_2022.dataset   = ''
 TprimeToTZ_1400_2022.EE        = 0
 
 TprimeToTZ_1500_2022           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1500GeV", "TprimeToTZ_1500_2022")
-TprimeToTZ_1500_2022.sigma     = 0.008463 # pb
+TprimeToTZ_1500_2022.sigma     = 0.001407 #pb  # questa è 2018 non 2022
 TprimeToTZ_1500_2022.year      = 2022
 TprimeToTZ_1500_2022.dataset   = '/TprimeBtoTZ-LH_Par-M-1500_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM'
 TprimeToTZ_1500_2022.EE        = 0
@@ -846,7 +846,7 @@ TprimeToTZ_1700_2022.dataset   = ''
 TprimeToTZ_1700_2022.EE        = 0
 
 TprimeToTZ_1800_2022           = sample(ROOT.kGreen+4, 1, 1001, "T#rightarrow tZ M1800GeV", "TprimeToTZ_1800_2022")
-TprimeToTZ_1800_2022.sigma     = 0.005721 # pb
+TprimeToTZ_1800_2022.sigma     = 0.0004463 # pb  # questa è 2018 non 2022
 TprimeToTZ_1800_2022.year      = 2022
 TprimeToTZ_1800_2022.dataset   = '/TprimeBtoTZ-LH_Par-M-1800_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM'
 TprimeToTZ_1800_2022.EE        = 0
@@ -1434,7 +1434,7 @@ WJets_2jets_2022EE.components  = [WJets_2jets0J_2022EE, WJets_2jets1J_2022EE, WJ
 
 #######################################   VLQ T signals   #######################################
 TprimeToTZ_700_2022EE            = sample(ROOT.kGreen, 1, 1001, "T#rightarrow tZ M700GeV", "TprimeToTZ_700_2022EE")
-TprimeToTZ_700_2022EE.sigma      = 0.01912 #pb
+TprimeToTZ_700_2022EE.sigma      = 0.07804 #pb  # questa è 2018 non 2022
 TprimeToTZ_700_2022EE.year       = 2022
 TprimeToTZ_700_2022EE.dataset    = '/TprimeBtoTZ-LH_Par-M-700_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM'
 TprimeToTZ_700_2022EE.EE         = 1
@@ -1452,7 +1452,7 @@ TprimeToTZ_900_2022EE.dataset    = ''
 TprimeToTZ_900_2022EE.EE         = 1
 
 TprimeToTZ_1000_2022EE           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1000GeV", "TprimeToTZ_1000_2022EE")
-TprimeToTZ_1000_2022EE.sigma     = 0.01518 #pb
+TprimeToTZ_1000_2022EE.sigma     = 0.01362 #pb  # questa è 2018 non 2022
 TprimeToTZ_1000_2022EE.year      = 2022
 TprimeToTZ_1000_2022EE.dataset   = '/TprimeBtoTZ-LH_Par-M-1000_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM'
 TprimeToTZ_1000_2022EE.EE        = 1
@@ -1464,7 +1464,7 @@ TprimeToTZ_1100_2022EE.dataset   = ''
 TprimeToTZ_1100_2022EE.EE        = 1
 
 TprimeToTZ_1200_2022EE           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1200GeV", "TprimeToTZ_1200_2022EE")
-TprimeToTZ_1200_2022EE.sigma     = 0.0122 #pb
+TprimeToTZ_1200_2022EE.sigma     = 0.005113 #pb  # questa è 2018 non 2022
 TprimeToTZ_1200_2022EE.year      = 2022
 TprimeToTZ_1200_2022EE.dataset   = '/TprimeBtoTZ-LH_Par-M-1200_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM'
 TprimeToTZ_1200_2022EE.EE        = 1
@@ -1482,7 +1482,7 @@ TprimeToTZ_1400_2022EE.dataset   = ''
 TprimeToTZ_1400_2022EE.EE        = 1
 
 TprimeToTZ_1500_2022EE           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1500GeV", "TprimeToTZ_1500_2022EE")
-TprimeToTZ_1500_2022EE.sigma     = 0.008463 #pb
+TprimeToTZ_1500_2022EE.sigma     = 0.001407 #pb  # questa è 2018 non 2022
 TprimeToTZ_1500_2022EE.year      = 2022
 TprimeToTZ_1500_2022EE.dataset   = '/TprimeBtoTZ-LH_Par-M-1500_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM'
 TprimeToTZ_1500_2022EE.EE        = 1
@@ -1500,7 +1500,7 @@ TprimeToTZ_1700_2022EE.dataset   = ''
 TprimeToTZ_1700_2022EE.EE        = 1
 
 TprimeToTZ_1800_2022EE           = sample(ROOT.kGreen+4, 1, 1001, "T#rightarrow tZ M1800GeV", "TprimeToTZ_1800_2022EE")
-TprimeToTZ_1800_2022EE.sigma     = 0.005721 #pb
+TprimeToTZ_1800_2022EE.sigma     = 0.0004463 # pb  # questa è 2018 non 2022
 TprimeToTZ_1800_2022EE.year      = 2022
 TprimeToTZ_1800_2022EE.dataset   = '/TprimeBtoTZ-LH_Par-M-1800_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM'
 TprimeToTZ_1800_2022EE.EE        = 1
@@ -2017,7 +2017,7 @@ WJets_2jets_2023.components  = [WJets_2jets0J_2023, WJets_2jets1J_2023, WJets_2j
 
 #######################################   VLQ T signals   #######################################
 TprimeToTZ_700_2023           = sample(ROOT.kGreen, 1, 1001, "T#rightarrow tZ M700GeV", "TprimeToTZ_700_2023")
-TprimeToTZ_700_2023.sigma     = 0.01912 # pb
+TprimeToTZ_700_2023.sigma     = 0.07804 #pb  # questa è 2018 non 2023
 TprimeToTZ_700_2023.year      = 2023
 TprimeToTZ_700_2023.dataset   = '/TprimeBtoTZ-LH_Par-M-700_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM'
 TprimeToTZ_700_2023.EE        = 0
@@ -2035,7 +2035,7 @@ TprimeToTZ_900_2023.dataset   = ''
 TprimeToTZ_900_2023.EE        = 0
 
 TprimeToTZ_1000_2023           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1000GeV", "TprimeToTZ_1000_2023")
-TprimeToTZ_1000_2023.sigma     = 0.01518 # pb
+TprimeToTZ_1000_2023.sigma     = 0.01362 #pb  # questa è 2018 non 2023
 TprimeToTZ_1000_2023.year      = 2023
 TprimeToTZ_1000_2023.dataset   = '/TprimeBtoTZ-LH_Par-M-1000_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM'
 TprimeToTZ_1000_2023.EE        = 0
@@ -2047,7 +2047,7 @@ TprimeToTZ_1100_2023.dataset   = ''
 TprimeToTZ_1100_2023.EE        = 0
 
 TprimeToTZ_1200_2023           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1200GeV", "TprimeToTZ_1200_2023")
-TprimeToTZ_1200_2023.sigma     = 0.0122 # pb
+TprimeToTZ_1200_2023.sigma     = 0.005113 #pb  # questa è 2018 non 2023
 TprimeToTZ_1200_2023.year      = 2023
 TprimeToTZ_1200_2023.dataset   = '/TprimeBtoTZ-LH_Par-M-1200_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM'
 TprimeToTZ_1200_2023.EE        = 0
@@ -2065,7 +2065,7 @@ TprimeToTZ_1400_2023.dataset   = ''
 TprimeToTZ_1400_2023.EE        = 0
 
 TprimeToTZ_1500_2023           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1500GeV", "TprimeToTZ_1500_2023")
-TprimeToTZ_1500_2023.sigma     = 0.008463 # pb
+TprimeToTZ_1500_2023.sigma     = 0.001407 #pb  # questa è 2018 non 2022
 TprimeToTZ_1500_2023.year      = 2023
 TprimeToTZ_1500_2023.dataset   = '/TprimeBtoTZ-LH_Par-M-1500_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM'
 TprimeToTZ_1500_2023.EE        = 0
@@ -2083,7 +2083,7 @@ TprimeToTZ_1700_2023.dataset   = ''
 TprimeToTZ_1700_2023.EE        = 0
 
 TprimeToTZ_1800_2023           = sample(ROOT.kGreen+4, 1, 1001, "T#rightarrow tZ M1800GeV", "TprimeToTZ_1800_2023")
-TprimeToTZ_1800_2023.sigma     = 0.005721 # pb
+TprimeToTZ_1800_2023.sigma     = 0.0004463 # pb  # questa è 2018 non 2023
 TprimeToTZ_1800_2023.year      = 2023
 TprimeToTZ_1800_2023.dataset   = '/TprimeBtoTZ-LH_Par-M-1800_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM'
 TprimeToTZ_1800_2023.EE        = 0
@@ -2585,7 +2585,7 @@ WJets_2jets_2023postBPix.components  = [WJets_2jets0J_2023postBPix, WJets_2jets1
 
 #######################################   VLQ T signals   #######################################
 TprimeToTZ_700_2023postBPix            = sample(ROOT.kGreen, 1, 1001, "T#rightarrow tZ M700GeV", "TprimeToTZ_700_2023postBPix")
-TprimeToTZ_700_2023postBPix.sigma      = 0.01912 #pb
+TprimeToTZ_700_2023postBPix.sigma      = 0.07804 #pb  # questa è 2018 non 2023
 TprimeToTZ_700_2023postBPix.year       = 2023
 TprimeToTZ_700_2023postBPix.dataset    = '/TprimeBtoTZ-LH_Par-M-700_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v2/NANOAODSIM'
 TprimeToTZ_700_2023postBPix.EE         = 1
@@ -2603,7 +2603,7 @@ TprimeToTZ_900_2023postBPix.dataset    = ''
 TprimeToTZ_900_2023postBPix.EE         = 1
 
 TprimeToTZ_1000_2023postBPix           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1000GeV", "TprimeToTZ_1000_2023postBPix")
-TprimeToTZ_1000_2023postBPix.sigma     = 0.01518 #pb
+TprimeToTZ_1000_2023postBPix.sigma     = 0.01362 #pb  # questa è 2018 non 2023
 TprimeToTZ_1000_2023postBPix.year      = 2023
 TprimeToTZ_1000_2023postBPix.dataset   = '/TprimeBtoTZ-LH_Par-M-1000_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v2/NANOAODSIM'
 TprimeToTZ_1000_2023postBPix.EE        = 1
@@ -2615,7 +2615,7 @@ TprimeToTZ_1100_2023postBPix.dataset   = ''
 TprimeToTZ_1100_2023postBPix.EE        = 1
 
 TprimeToTZ_1200_2023postBPix           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1200GeV", "TprimeToTZ_1200_2023postBPix")
-TprimeToTZ_1200_2023postBPix.sigma     = 0.0122 #pb
+TprimeToTZ_1200_2023postBPix.sigma     = 0.005113 #pb  # questa è 2018 non 2023
 TprimeToTZ_1200_2023postBPix.year      = 2023
 TprimeToTZ_1200_2023postBPix.dataset   = '/TprimeBtoTZ-LH_Par-M-1200_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v2/NANOAODSIM'
 TprimeToTZ_1200_2023postBPix.EE        = 1
@@ -2633,7 +2633,7 @@ TprimeToTZ_1400_2023postBPix.dataset   = ''
 TprimeToTZ_1400_2023postBPix.EE        = 1
 
 TprimeToTZ_1500_2023postBPix           = sample(ROOT.kGreen+2, 1, 1001, "T#rightarrow tZ M1500GeV", "TprimeToTZ_1500_2023postBPix")
-TprimeToTZ_1500_2023postBPix.sigma     = 0.008463 #pb
+TprimeToTZ_1500_2023postBPix.sigma     = 0.001407 #pb  # questa è 2018 non 2023
 TprimeToTZ_1500_2023postBPix.year      = 2023
 TprimeToTZ_1500_2023postBPix.dataset   = '/TprimeBtoTZ-LH_Par-M-1500_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v2/NANOAODSIM'
 TprimeToTZ_1500_2023postBPix.EE        = 1
@@ -2651,7 +2651,7 @@ TprimeToTZ_1700_2023postBPix.dataset   = ''
 TprimeToTZ_1700_2023postBPix.EE        = 1
 
 TprimeToTZ_1800_2023postBPix           = sample(ROOT.kGreen+4, 1, 1001, "T#rightarrow tZ M1800GeV", "TprimeToTZ_1800_2023postBPix")
-TprimeToTZ_1800_2023postBPix.sigma     = 0.005721 #pb
+TprimeToTZ_1800_2023postBPix.sigma     = 0.0004463 # pb  # questa è 2018 non 2023
 TprimeToTZ_1800_2023postBPix.year      = 2023
 TprimeToTZ_1800_2023postBPix.dataset   = '/TprimeBtoTZ-LH_Par-M-1800_TuneCP5_13p6TeV_madgraph-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v2/NANOAODSIM'
 TprimeToTZ_1800_2023postBPix.EE        = 1
