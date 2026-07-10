@@ -28,8 +28,8 @@ class JetVetoMaps_run3(Module):
                 self.map_name   = "Summer23Prompt23_RunC_V1"
         elif year == 2024:
             eratag              = "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15"
-            self.CorrVersion    = "2025-07-17"
-            self.map_name       = "Summer24Prompt24_RunCDE_V1"
+            self.CorrVersion    = "2026-06-05"
+            self.map_name       = "Summer24Prompt24_RunBCDEFGHI_V1"
         else:
             print("Please specify the correct era tag for the JetVetoMaps. Possible choices are 2022_Summer22 - 2022_Summer22EE - 2023_Summer23 - 2023_Summer23BPix.")
             print("Alternativly, find the era in the json file and modify JetVetoMaps.py accordingly.")

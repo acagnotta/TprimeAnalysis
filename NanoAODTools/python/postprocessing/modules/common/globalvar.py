@@ -33,7 +33,7 @@ class globalvar(Module):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         jets = Collection(event, "Jet")
         fatjets = Collection(event, "FatJet")
-        met = Object(event, "MET")
+        met = Object(event, "PuppiMET")
         goodjets, goodfatjets = presel(jets, fatjets)
 
         mindphi=1000

@@ -23,7 +23,7 @@ debug = opt.debug
 submit = opt.submit
 resubmit = opt.resubmit
 status = opt.status
-calcualte_systematics = opt.syst
+calculate_systematics = opt.syst
 where_to_write = opt.tier
 delete_files = opt.delete_files
 
@@ -61,7 +61,7 @@ if submit:
     if not debug: os.popen("davix-mkdir {}/store/user/{}/{}/ -E /tmp/x509up_u{} --capath /cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/".format(redirector, username, remote_folder_name, str(uid)))
     print("          {}/store/user/{}/{} CREATED".format(redirector, username, remote_folder_name))
 
-def write_crab_script(sample, file, modules, run_folder, calcualte_systematics, year, debug):
+def write_crab_script(sample, file, modules, run_folder, calculate_systematics, year, debug):
     f = open(run_folder+"/crab_script.py", "w")
     f.write("#!/usr/bin/env python3\n")
     f.write("import os\n")
@@ -75,7 +75,7 @@ def write_crab_script(sample, file, modules, run_folder, calcualte_systematics, 
     f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.common.PUreweight import *\n") 
     f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.common.GenPart_MomFirstCp import *\n")
     f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.common.nanoprepro_v2 import *\n")
-    if year in [2022,2023] and calcualte_systematics:
+    if year in [2022,2023,2024] and calculate_systematics:
         f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.common.nanoTopcandidate_v2_syst import *\n")
         f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.common.nanoTopEvaluate_MultiScore_v2_syst import *\n")
     else:
@@ -87,6 +87,8 @@ def write_crab_script(sample, file, modules, run_folder, calcualte_systematics, 
     f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.common.lumiMask import *\n")
     f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.jme.CMSJMECalculators_module import *\n")
     f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.jme.CMSJMECalculatorsHelper import *\n")
+    if year in [2024]:
+        f.write("from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetId import *\n")
     f.write("from CMSJMECalculators import loadJMESystematicsCalculators\n")
     f.write("from CMSJMECalculators.utils import (\n")
     f.write("    toRVecFloat,\n")
@@ -112,7 +114,7 @@ def write_crab_script(sample, file, modules, run_folder, calcualte_systematics, 
         year_tag = year
     
     if debug:
-        extra_str=",maxEntries=100"
+        extra_str=", maxEntries=100"
     else:
         extra_str=""
     if isMC:
@@ -221,28 +223,60 @@ if submit:
         outfolder_tmp = "/tmp/"+username+"/"
         outfolder_crabscript = outfolder_tmp+sample.label+"/"
 
-        isMC = True
-        if "Data" in sample.label: isMC = False
+        if "Data" in sample.label:
+            isMC = False
+        else:
+            isMC = True
 
         modelMix_path = models["TopMixed_"+str(sample.year)]
         modelRes_path = models["TopResolved_"+str(sample.year)]
         if isMC:
             if sample.year == 2018:
                 modules = "MCweight_writer(), MET_Filter(year = "+str(sample.year)+"), preselection(), GenPart_MomFirstCp(flavour='-5,-4,-3,-2,-1,1,2,3,4,5,6,-6,24,-24'), nanoprepro(),nanoTopcand(isMC=1), globalvar(), nanoTopevaluate_MultiScore(year = "+str(sample.year)+", modelMix_path='"+modelMix_path+"', modelRes_path='"+modelRes_path+"')"
-            elif sample.year in [2022,2023]:
-                if calcualte_systematics:
-                    modules = "MCweight_writer(),MET_Filter(year = "+str(sample.year)+"),JetVetoMaps_run3(year="+str(sample.year)+",EE="+str(sample.EE)+"),preselection(),PUreweight(year="+str(sample.year)+",EE="+str(sample.EE)+"),BTagSF(year="+str(sample.year)+",EE="+str(sample.EE)+"),CMSJMECalculators(configcreate(isMC=True,year="+str(sample.year)+",EE="+str(sample.EE)+",runPeriod='.',jetType='AK4PFPuppi',forMET=False,doJer=True),jetType='AK4PFPuppi',isMC=True,forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12),CMSJMECalculators(configcreate(isMC=True,year="+str(sample.year)+",EE="+str(sample.EE)+",runPeriod='.',jetType='AK8PFPuppi',forMET=False,doJer=True),jetType='AK8PFPuppi',isMC=True,forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12),CMSJMECalculators(configcreate(isMC=True,year="+str(sample.year)+",EE="+str(sample.EE)+",runPeriod='.',jetType='AK4PFPuppi',forMET=True,doJer=True),jetType='AK4PFPuppi',isMC=True,forMET=True,PuppiMET=True,addHEM2018Issue=False,NanoAODv=12),GenPart_MomFirstCp(flavour='-5,-4,-3,-2,-1,1,2,3,4,5,6,-6,24,-24'),nanoprepro(),nanoTopcand(isMC=True),globalvar(), nanoTopevaluate_MultiScore(year = "+str(sample.year)+", modelMix_path='"+modelMix_path+"', modelRes_path='"+modelRes_path+"')"
-                else:
-                    modules = "MCweight_writer(),MET_Filter(year = "+str(sample.year)+"),JetVetoMaps_run3(year="+str(sample.year)+",EE="+str(sample.EE)+"),preselection(),PUreweight(year="+str(sample.year)+",EE="+str(sample.EE)+"),BTagSF(year="+str(sample.year)+",EE="+str(sample.EE)+"),GenPart_MomFirstCp(flavour='-5,-4,-3,-2,-1,1,2,3,4,5,6,-6,24,-24'),nanoprepro(),nanoTopcand(isMC=True),globalvar(), nanoTopevaluate_MultiScore(year = "+str(sample.year)+", modelMix_path='"+modelMix_path+"', modelRes_path='"+modelRes_path+"')"
+            elif sample.year in [2022,2023,2024]:
+                modules_list = []
+
+                modules_list.append(f'MCweight_writer()')
+                modules_list.append(f'MET_Filter(year={sample.year})')
+                if sample.year in [2024]:
+                    modules_list.append(f'jetId(year={sample.year},EE={sample.EE})')
+                modules_list.append(f'JetVetoMaps_run3(year={sample.year},EE={sample.EE})')
+                modules_list.append(f'preselection()')
+                modules_list.append(f'PUreweight(year={sample.year},EE={sample.EE})')
+                if sample.year not in [2024]:
+                    modules_list.append(f'BTagSF(year={sample.year},EE={sample.EE})')
+                if calculate_systematics:
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType="AK4PFPuppi",forMET=False,doJer=True),jetType="AK4PFPuppi",isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType="AK8PFPuppi",forMET=False,doJer=True),jetType="AK8PFPuppi",isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod=".",jetType="AK4PFPuppi",forMET=True,doJer=True),jetType="AK4PFPuppi",isMC={isMC},forMET=True,PuppiMET=True,addHEM2018Issue=False,NanoAODv=12)')
+                modules_list.append(f'GenPart_MomFirstCp(flavour="-5,-4,-3,-2,-1,1,2,3,4,5,6,-6,24,-24")')
+                modules_list.append(f'nanoprepro()')
+                modules_list.append(f'nanoTopcand(isMC={isMC})')
+                modules_list.append(f'globalvar()')
+                modules_list.append(f'nanoTopevaluate_MultiScore(year={sample.year},modelMix_path="{modelMix_path}",modelRes_path="{modelRes_path}")')
+
         else:
             if sample.year==2018:
                 modules = "lumiMask(year = "+str(sample.year)+"), MET_Filter(year = "+str(sample.year)+"), preselection(), nanoTopcand(isMC=0), globalvar(), nanoTopevaluate_MultiScore(isMC=0, year = "+str(sample.year)+", modelMix_path='"+modelMix_path+"', modelRes_path='"+modelRes_path+"')"
-            elif sample.year in [2022,2023]:
-                if calcualte_systematics:
-                    modules = "lumiMask(year = "+str(sample.year)+"),MET_Filter(year = "+str(sample.year)+"),JetVetoMaps_run3(year="+str(sample.year)+",EE="+str(sample.EE)+"),preselection(),CMSJMECalculators(configcreate(isMC=False,year="+str(sample.year)+",EE="+str(sample.EE)+",runPeriod='"+sample.runP+"',jetType='AK4PFPuppi',forMET=False,doJer=True),jetType='AK4PFPuppi',isMC=False,forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12),CMSJMECalculators(configcreate(isMC=False,year="+str(sample.year)+",EE="+str(sample.EE)+",runPeriod='"+sample.runP+"',jetType='AK8PFPuppi',forMET=False,doJer=True),jetType='AK8PFPuppi',isMC=False,forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12),CMSJMECalculators(configcreate(isMC=False,year="+str(sample.year)+",EE="+str(sample.EE)+",runPeriod='"+sample.runP+"',jetType='AK4PFPuppi',forMET=True,doJer=True),jetType='AK4PFPuppi',isMC=False,forMET=True,PuppiMET=True,addHEM2018Issue=False,NanoAODv=12),nanoTopcand(isMC=False),globalvar(), nanoTopevaluate_MultiScore(isMC=0,year = "+str(sample.year)+", modelMix_path='"+modelMix_path+"', modelRes_path='"+modelRes_path+"')"
-                else:
-                    modules = "lumiMask(year = "+str(sample.year)+"),MET_Filter(year = "+str(sample.year)+"),JetVetoMaps_run3(year="+str(sample.year)+",EE="+str(sample.EE)+"),preselection(),nanoTopcand(isMC=False),globalvar(), nanoTopevaluate_MultiScore(isMC=0,year = "+str(sample.year)+", modelMix_path='"+modelMix_path+"', modelRes_path='"+modelRes_path+"')"
+            elif sample.year in [2022,2023,2024]:
+                modules_list = []
 
+                modules_list.append(f'lumiMask(year={sample.year})')
+                if sample.year in [2024]:
+                    modules_list.append(f'jetId(year={sample.year},EE={sample.EE})')
+                modules_list.append(f'MET_Filter(year={sample.year})')
+                modules_list.append(f'JetVetoMaps_run3(year={sample.year},EE={sample.EE})')
+                modules_list.append(f'preselection()')
+                if calculate_systematics:
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType="AK4PFPuppi",forMET=False,doJer=True),jetType="AK4PFPuppi",isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType="AK8PFPuppi",forMET=False,doJer=True),jetType="AK8PFPuppi",isMC={isMC},forMET=False,PuppiMET=False,addHEM2018Issue=False,NanoAODv=12)')
+                    modules_list.append(f'CMSJMECalculators(configcreate(isMC={isMC},year={sample.year},EE={sample.EE},runPeriod="{sample.runP}",jetType="AK4PFPuppi",forMET=True,doJer=True),jetType="AK4PFPuppi",isMC={isMC},forMET=True,PuppiMET=True,addHEM2018Issue=False,NanoAODv=12)')
+                modules_list.append(f'nanoTopcand(isMC={isMC})')
+                modules_list.append(f'globalvar()')
+                modules_list.append(f'nanoTopevaluate_MultiScore(isMC={isMC},year={sample.year},modelMix_path="{modelMix_path}",modelRes_path="{modelRes_path}")')
+
+        if sample.year in [2022,2023,2024]:
+            modules = ", ".join(modules_list)
         files = get_files_string(sample)
         if debug: files = files[:1] 
         print(len(files))
@@ -253,7 +287,7 @@ if submit:
             running_subfolder_file = running_subfolder + "/file" + str(i)
             if not os.path.exists(running_subfolder_file):
                 os.makedirs(running_subfolder_file)
-            write_crab_script(sample, f, modules, running_subfolder_file, calcualte_systematics, sample.year, debug)
+            write_crab_script(sample, f, modules, running_subfolder_file, calculate_systematics, sample.year, debug)
             runner_writer(running_subfolder_file, i, remote_folder_name, sample_folder, launchtime, outfolder_crabscript_i)
             sub_writer(running_subfolder_file, running_subfolder+"/condor", sample.label+"_file"+str(i), sample.label)
             if not debug :
