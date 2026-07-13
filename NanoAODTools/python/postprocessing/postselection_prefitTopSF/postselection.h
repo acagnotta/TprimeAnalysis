@@ -1973,17 +1973,23 @@ RVec<float> TopGenLep_var(rvec_i TopGenLep_idx, rvec_f GenPart_var)
 
 float topPtReweighting(float top_pt, float antitop_pt)
 {
-  if (top_pt > 500) // the reweighting is only defined up to 500 GeV, above that we keep the weight constant at the value it has at 500 GeV (according to the recommendation of the TOP PAG: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting)
-  {
-    top_pt = 500;
-  }
-  if (antitop_pt > 500)
-  {
-    antitop_pt = 500;
-  }
-  float q = 0.0615;
-  float m = -0.0005;
-  float w = sqrt(exp(m*top_pt + q) * exp(m*antitop_pt + q));
+  // TOP PAG twiki for Top pT reweighting: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting
+  // if (top_pt > 500) // the reweighting is only defined up to 500 GeV, above that we keep the weight constant at the value it has at 500 GeV (according to the recommendation of the TOP PAG: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting)
+  // {
+  //   top_pt = 500;
+  // }
+  // if (antitop_pt > 500)
+  // {
+  //   antitop_pt = 500;
+  // }
+  // float q = 0.0615;
+  // float m = -0.0005;
+  // float w = sqrt(exp(m*top_pt + q) * exp(m*antitop_pt + q));
+
+
+  float sf_top = (0.103*exp(-0.0118*top_pt)-0.000134*top_pt+0.973)*(0.991+0.000075*top_pt);
+  float sf_antitop = (0.103*exp(-0.0118*antitop_pt)-0.000134*antitop_pt+0.973)*(0.991+0.000075*antitop_pt);
+  float w = sqrt(sf_top * sf_antitop);
   return w;
 }
 
