@@ -28,8 +28,10 @@ class lumiMask(Module):
             jsonInput = '/eos/user/c/cmsdqm/www/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json'
         elif(self.year == 2023):
             jsonInput = '/eos/user/c/cmsdqm/www/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json'
+        elif(self.year == 2024):
+            jsonInput = '/eos/user/c/cmsdqm/www/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json'
         else:
-            print ("Please specify the year: possible choices are 2016, 2017 , 2018 , 2022 or 2023")
+            print ("Please specify the year: possible choices are 2016, 2017, 2018, 2022, 2023 or 2024")
         b = False
         # print(run, lumiblock)
         with open(jsonInput) as json_file:

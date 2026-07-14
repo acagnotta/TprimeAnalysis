@@ -513,9 +513,9 @@ def top3j1fj(fj, j0, j1, j2, s=None, dr0=None, dr1=None, dr2=None):
 
 
 def get_jet(jets):
-    return list(filter(lambda x : x.jetId and x.pt>25 and abs(x.eta)<2.7 , jets))
+    return list(filter(lambda x : x.jetId and x.pt>25 and abs(x.eta)<2.5, jets))
 def get_fatjet(fatjets):
-    return list(filter(lambda x : x.jetId and abs(x.eta)<2.7, fatjets))###
+    return list(filter(lambda x : x.jetId and x.pt>200 and abs(x.eta)<2.5, fatjets))###
 def presel(jets, fatjets): #returns 2 collections of jets and fatjets
     goodjets = get_jet(jets)
     goodfatjets = get_fatjet(fatjets)

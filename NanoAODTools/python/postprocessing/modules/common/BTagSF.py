@@ -36,26 +36,39 @@ def eta_jet(input_eta):
 
 class BTagSF(Module):
     def __init__(self, year, EE): # eratag from https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/tree/master/POG/BTV/
-        self.CorrVersion = "2025-08-20"
         if year == 2022:
             if EE:
-                eratag          = "Run3-22EFGSep23-Summer22EE-NanoAODv12"
+                eratag              = "Run3-22EFGSep23-Summer22EE-NanoAODv12"
+                self.CorrVersion    = "2025-08-20"
+                self.tagger         = 'particleNet_shape'
+                self.discr          = "btagPNetB"
             else:
-                eratag          = "Run3-22CDSep23-Summer22-NanoAODv12"
+                eratag              = "Run3-22CDSep23-Summer22-NanoAODv12"
+                self.CorrVersion    = "2025-08-20"
+                self.tagger         = 'particleNet_shape'
+                self.discr          = "btagPNetB"
         elif year == 2023:
             if EE:
-                eratag          = "Run3-23CSep23-Summer23-NanoAODv12"
+                eratag              = "Run3-23CSep23-Summer23-NanoAODv12"
+                self.CorrVersion    = "2025-08-20"
+                self.tagger         = 'particleNet_shape'
+                self.discr          = "btagPNetB"
             else:
-                eratag          = "Run3-23DSep23-Summer23BPix-NanoAODv12"
+                eratag              = "Run3-23DSep23-Summer23BPix-NanoAODv12"
+                self.CorrVersion    = "2025-08-20"
+                self.tagger         = 'particleNet_shape'
+                self.discr          = "btagPNetB"
         elif year == 2024:
-            eratag              = "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15"
-            self.CorrVersion    = "2024-08-19"
+            eratag                  = "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15"
+            self.CorrVersion        = "2026-03-10"
+            self.tagger             = ''
+            self.discr              = "btagUParTAK4B"
         else:
-            print("Please specify the correct era tag for the BTag SF. 2022_Summer22 - 2022_Summer22EE - 2023_Summer23 - 2023_Summer23BPix.")
+            print("Please specify the correct era tag for the BTag SF. 2022_Summer22 - 2022_Summer22EE - 2023_Summer23 - 2023_Summer23BPix - 2024.")
             print("Alternativly, find the era in the json file and modify PUreweight.py accordingly.")
-        self.jsonfile = "/cvmfs/cms-griddata.cern.ch/cat/metadata/BTV/"+eratag+"/"+self.CorrVersion+"/btagging.json.gz"
-        self.evaluator = _core.CorrectionSet.from_file(self.jsonfile)
-        self.tagger = 'particleNet_shape'
+        self.jsonfile               = "/cvmfs/cms-griddata.cern.ch/cat/metadata/BTV/"+eratag+"/"+self.CorrVersion+"/btagging.json.gz"
+        self.evaluator              = _core.CorrectionSet.from_file(self.jsonfile)
+        
         # if(year == 2022 and "22EE" in eratag):
         #     self.map_name = "Summer22EE_23Sep2023_RunEFG_V1"
         # elif(year == 2022 and not "EE" in eratag):
@@ -75,13 +88,13 @@ class BTagSF(Module):
         pass
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        jets   = Collection(event, "Jet")   
-        w = 1.0    
-        jetSel = list(filter(lambda x: x.pt > 30 and x.jetId>=2 and x.btagPNetB>=0, jets))
+        jets    = Collection(event, "Jet")   
+        w       = 1.0
+        jetSel  = list(filter(lambda x: x.pt > 30 and x.jetId>=2 and getattr(x, self.discr)>=0, jets))
         # muons  = Collection(event, "Muon")
         for j in jetSel:
-            # print("central", getFlavorBTV(j.hadronFlavour, verbose=True), eta_jet(j.eta), j.pt, j.btagPNetB)
-            w *=self.btagsf.evaluate("central", getFlavorBTV(j.hadronFlavour, verbose=True), eta_jet(j.eta), j.pt, j.btagPNetB)
+            # print("central", getFlavorBTV(j.hadronFlavour, verbose=True), eta_jet(j.eta), j.pt, getattr(j, self.discr))
+            w *=self.btagsf.evaluate("central", getFlavorBTV(j.hadronFlavour, verbose=True), eta_jet(j.eta), j.pt, getattr(j, self.discr))
         # print(w)
         self.out.fillBranch("SFbtag_nominal", w)
 

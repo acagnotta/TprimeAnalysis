@@ -32,8 +32,10 @@ class MET_Filter(Module): # https://twiki.cern.ch/twiki/bin/viewauth/CMS/Missing
         elif(self.year == 2023):
             # good_HLT = HLT.PFMET120_PFMHT120_IDTight or HLT.PFMETNoMu120_PFMHTNoMu120_IDTight
             good_MET = flag.goodVertices and flag.globalSuperTightHalo2016Filter and flag.EcalDeadCellTriggerPrimitiveFilter and flag.BadPFMuonFilter and flag.BadPFMuonDzFilter and flag.hfNoisyHitsFilter and flag.eeBadScFilter
+        elif(self.year == 2024):
+            good_MET = flag.goodVertices and flag.globalSuperTightHalo2016Filter and flag.EcalDeadCellTriggerPrimitiveFilter and flag.BadPFMuonFilter and flag.BadPFMuonDzFilter and flag.hfNoisyHitsFilter and flag.eeBadScFilter and flag.ecalBadCalibFilter
         else:
-            print ("Please specify the year: possible choices are 2016, 2017, 2018, 2022, 2023")
+            print ("Please specify the year: possible choices are 2016, 2017, 2018, 2022, 2023, 2024")
         
         return good_MET
 
@@ -42,3 +44,4 @@ MET_Filter_2017 = lambda : MET_Filter(2017)
 MET_Filter_2018 = lambda : MET_Filter(2018)
 MET_Filter_2022 = lambda : MET_Filter(2022)
 MET_Filter_2023 = lambda : MET_Filter(2023)
+MET_Filter_2024 = lambda : MET_Filter(2024)
