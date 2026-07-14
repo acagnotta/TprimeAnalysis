@@ -199,7 +199,7 @@ class nanoTopevaluate_MultiScore(Module):
                 scores_True     = self.modelMix({"fatjet": fj_dnn, "jet": jets_dnn, "top": mass_dnn}).numpy()[:,1].flatten()
                 scores_False    = self.modelMix({"fatjet": fj_dnn, "jet": jets_dnn, "top": mass_dnn}).numpy()[:,0].flatten()
                 scores_QCD      = self.modelMix({"fatjet": fj_dnn, "jet": jets_dnn, "top": mass_dnn}).numpy()[:,2].flatten()
-                scores          = (scores_True / (scores_True+scores_QCD)).tolist() # True/(True+QCD)
+                scores          = scores_True.tolist() # True/(True+QCD)
         else:
             scores              = []
 
@@ -223,7 +223,7 @@ class nanoTopevaluate_MultiScore(Module):
                 scores_True     = self.modelRes({"jet": jets_dnn}).numpy()[:,1].flatten()
                 scores_False    = self.modelRes({"jet": jets_dnn}).numpy()[:,0].flatten()
                 scores_QCD      = self.modelRes({"jet": jets_dnn}).numpy()[:,2].flatten()
-                scores          = (scores_True / (scores_True+scores_QCD)).tolist() # True/(True+QCD)
+                scores          = scores_True.tolist() # True/(True+QCD)
         else:
             scores = []
         self.out.fillBranch("TopResolved_TopScore", scores)
