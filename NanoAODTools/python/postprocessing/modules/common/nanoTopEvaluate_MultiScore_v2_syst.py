@@ -275,7 +275,7 @@ class nanoTopevaluate_MultiScore(Module):
                 scores_True     = self.modelMix({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy()[:,1].flatten()
                 scores_False    = self.modelMix({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy()[:,0].flatten()
                 scores_QCD      = self.modelMix({"fatjet": fj_dnn_concatenated, "jet": jets_dnn_concatenated, "top": mass_dnn_concatenated}).numpy()[:,2].flatten()
-                scores_         = (scores_True / (scores_True+scores_QCD)).tolist() # True/(True+QCD)
+                scores_         = scores_True.tolist() # True/(True+QCD)
             
             for i, s in enumerate(self.scenarios):
                 scores[s]       = scores_[0 + i*len(tophighpt): len(tophighpt)+i*len(tophighpt)]
@@ -306,7 +306,7 @@ class nanoTopevaluate_MultiScore(Module):
                 scores_True     = self.modelRes({"jet": jets_dnn_concatenated}).numpy()[:,1].flatten()
                 scores_False    = self.modelRes({"jet": jets_dnn_concatenated}).numpy()[:,0].flatten()
                 scores_QCD      = self.modelRes({"jet": jets_dnn_concatenated}).numpy()[:,2].flatten()
-                scores_         = (scores_True / (scores_True+scores_QCD)).tolist() # True/(True+QCD)
+                scores_         = scores_True.tolist() # True/(True+QCD)
 
             for i, s in enumerate(self.scenarios):
                 scores[s] = scores_[0 + i*len(toplowpt): len(toplowpt)+i*len(toplowpt)]
