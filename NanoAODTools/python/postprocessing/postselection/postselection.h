@@ -22,12 +22,12 @@ using rvec_i = const RVec<int> &;
 using rvec_b = const RVec<bool> &;
 using rvec_rvec_i = const RVec<RVec<int>> &;
 
-const float TopRes_trs_5fpr=  0.29475874; // tight
-const float TopMix_trs_5fpr=  0.8474694490432739; // tight
-const float TopRes_trs_10fpr=  0.1422998; // loose
-const float TopMix_trs_10fpr=  0.7214655876159668; // loose
-const float TopMer_trs_loose=  0.8;//0.94; 0.8 for 2022 correspond to fpr 6% on ttbar
-const float TopMer_trs_tight=  0.9;//0.94; 0.8 for 2022 correspond to fpr 6% on ttbar
+const float TopRes_trs_5fpr  = 0.625; // tight
+const float TopMix_trs_5fpr  = 0.950; // tight
+const float TopRes_trs_10fpr = 0.425; // loose
+const float TopMix_trs_10fpr = 0.900; // loose
+const float TopMer_trs_loose = 0.075; // loose
+const float TopMer_trs_tight = 0.250; // tight
 const float dR=  0.8;
 //  Top Resolved threshold 2022 training { 'fpr 10': 0.1422998, 'fpr 5': 0.29475874, 'fpr 1': 0.59264845, 'fpr 01': 0.86580896}
 //  Top Mixed threshold 2022 training {"10%": {"thr": 0.7214655876159668,},"5%": {"thr": 0.8474694490432739,},"1%": {"thr": 0.9436638951301575,},"0.1%": {"thr": 0.9789741635322571,}}
@@ -1623,4 +1623,328 @@ float genpartTopPt(rvec_f GenPart_pt, rvec_i GenPart_pdgId, rvec_i GenPart_genPa
   }
 
   return top_pt;
+}
+
+
+
+// ################################################
+// ############## Top pT reweighting ##############
+// ################################################
+int countTopGenLep(rvec_i pdgId, rvec_i motherIdx, rvec_i motherIdx_prompt, rvec_i statusFlags)
+{
+  int nLeptonicTops = 0;
+  for (int i = 0; i < pdgId.size(); ++i) 
+  {
+    if (abs(pdgId[i]) == 11 || abs(pdgId[i]) == 13 || abs(pdgId[i]) == 15) // ele, mu, tau
+    {
+      if ((abs(pdgId[motherIdx[i]]) == 24) && (statusFlags[motherIdx[i]] & (1 << 13))) // the mother of the lepton is a W boson
+      {
+        if ((abs(pdgId[motherIdx_prompt[motherIdx[i]]]) == 6) && (statusFlags[motherIdx_prompt[motherIdx[i]]] & (1 << 13))) // the mother of the W boson is a top quark (last copy)
+        {
+          nLeptonicTops++;
+        }
+      } 
+    }
+  }
+  return nLeptonicTops;
+}
+
+RVec<int> TopGenLep_genPartIdx(rvec_i pdgId, rvec_i motherIdx, rvec_i motherIdx_prompt, rvec_i statusFlags)
+{
+  RVec<int> idx = {};
+  for (int i = 0; i < pdgId.size(); ++i) 
+  {
+    if (abs(pdgId[i]) == 11 || abs(pdgId[i]) == 13 || abs(pdgId[i]) == 15) // ele, mu, tau
+    {
+      if ((abs(pdgId[motherIdx[i]]) == 24) && (statusFlags[motherIdx[i]] & (1 << 13))) // the mother of the lepton is a W boson
+      {
+        if ((abs(pdgId[motherIdx_prompt[motherIdx[i]]]) == 6) && (statusFlags[motherIdx_prompt[motherIdx[i]]] & (1 << 13))) // the mother of the W boson is a top quark (last copy)
+        {
+          idx.emplace_back(motherIdx_prompt[motherIdx[i]]);
+        }
+      } 
+    }
+  }
+  return idx;
+}
+
+RVec<float> TopGenLep_var(rvec_i TopGenLep_idx, rvec_f GenPart_var)
+{
+  RVec<float> var;
+  for (int i = 0; i < TopGenLep_idx.size(); ++i)
+  {
+    var.emplace_back(GenPart_var[TopGenLep_idx[i]]);
+  }
+  return var;
+}
+
+float topPtReweighting(float top_pt, float antitop_pt)
+{
+  if (top_pt > 500) // the reweighting is only defined up to 500 GeV, above that we keep the weight constant at the value it has at 500 GeV (according to the recommendation of the TOP PAG: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting)
+  {
+    top_pt = 500;
+  }
+  if (antitop_pt > 500)
+  {
+    antitop_pt = 500;
+  }
+  float q = 0.0615;
+  float m = -0.0005;
+  float w = sqrt(exp(m*top_pt + q) * exp(m*antitop_pt + q));
+  return w;
+}
+
+
+////////////////
+/// Trota SF ///
+////////////////
+
+////// Matching between Top Candidates and Gen Tops requiring their deltaR to be below a certain threshold
+RVec<int> TopMatched_to_GenTop_with_dR(rvec_f TopGenTopPart_eta, rvec_f TopGenTopPart_phi, rvec_f TopCand_eta, rvec_f TopCand_phi, float deltaR_thr)
+{
+  RVec<int> matched;
+  if(TopGenTopPart_eta.size()==0) // no gen tops in the event (QCD, etc.)
+  {
+    for(int j = 0; j < TopCand_eta.size(); j++)
+    {      
+      matched.push_back(0);
+    }
+  }
+  else
+  {
+    for(int j = 0; j < TopCand_eta.size(); j++)
+    {
+      int matching_found = 0;
+      for(int i = 0; i < TopGenTopPart_eta.size(); i++)
+      {
+        if(deltaR(TopGenTopPart_eta[i], TopGenTopPart_phi[i], TopCand_eta[j], TopCand_phi[j]) < deltaR_thr)
+        {
+          matching_found = 1;
+          break;
+        }
+      }
+      matched.push_back(matching_found);
+    }
+  }
+  return matched;
+}
+
+////// Definition of the process category for each top candidate based on the matching to gen tops and on the sample process (TT, TW, QCD, etc.)
+////// 0: topmatched, 1: notmatched, 2: other
+RVec<int> top_process_category(std::string sample_process, rvec_i TopTruth_MatchedToGenTop)
+{
+  RVec<int> top_process;
+  for(int i = 0; i < TopTruth_MatchedToGenTop.size(); i++)
+  {
+    if (TopTruth_MatchedToGenTop[i] == 1)
+    {
+      if(sample_process == "TT" || sample_process == "TW" || sample_process == "TprimeToTZ")
+      {
+        top_process.push_back(0);
+      }
+    }
+    else if (TopTruth_MatchedToGenTop[i] == 0)
+    {
+      if(sample_process == "TT" || sample_process == "TW" || sample_process == "TprimeToTZ")
+      {
+        top_process.push_back(1);
+      }
+      else if(sample_process == "QCD" || sample_process == "ZJetsToNuNu" || sample_process == "WJets")
+      {
+        top_process.push_back(2);
+      }
+    }
+  }
+  return top_process;
+}
+
+////// Calculate the Trota SF for each top candidate of a given category
+RVec<float> GetTrotaSF(std::string corrLibFilePath, std::string TopCat, rvec_i TopCandidate_TagCat, rvec_f TopCandidate_score, float wpLoose, float wpTight, rvec_f TopCandidate_pt, std::string scenario){
+  /**
+  * @brief Compute the Trota scale factor for each top candidate.
+  *
+  * This function loops over all top candidates and evaluates the
+  * "TrotaScaleFactors" correction from a CorrectionLib JSON file.
+  *
+  * For each candidate:
+  * - read its score, pT, and tag category
+  * - determine whether it belongs to the "pass" or "fail" region
+  *   according to the tagger working points
+  * - evaluate the scale factor with CorrectionLib using:
+  *     {TopCat, wpTag, TagCat, channel, "value", pt}
+  * - store the resulting weight in the output vector
+  *
+  * @param corrLibFilePath Path to the CorrectionLib JSON file.
+  * @param TopCat Top category string passed to the correction: Resolved, Mixed, Merged.
+  * @param TopCandidate_TagCat Per-candidate tag category: 0-->topmatched, 1-->nonmatched, 2-->other.
+  * @param TopCandidate_score Per-candidate Trota score.
+  * @param wpLoose Loose working-point threshold used to define pass/fail.
+  * @param wpTight Tight working-point threshold used to define pass/fail.
+  * @param TopCandidate_pt Per-candidate transverse momentum used in the SF evaluation.
+  * @param scenario String to select whether to return nominal SF ("nominal") or systematic variations ("up"/"down").
+  *
+  * @return RVec<float> weights containing one scale factor per top candidate.
+  *
+  * @note The function assumes that all input vectors have the same size.
+  */
+
+  auto cset             = correction::CorrectionSet::from_file(corrLibFilePath);
+  auto trotaSF_corr     = cset->at("TrotaScaleFactors");
+  RVec<float> weights_nominal;
+  RVec<float> weights_up;
+  RVec<float> weights_down;
+  RVec<float> errors;
+  for (int i = 0; i < TopCandidate_pt.size(); i++)
+  {
+    float score   = TopCandidate_score[i];
+    float pt      = TopCandidate_pt[i];
+    std::string TagCat;
+    std::string channel;
+    std::string wpTag;
+    float weight  = 1.0;
+    float error   = 0.0;
+
+    if (TopCandidate_TagCat[i] == 0)
+    {
+      TagCat = "topmatched";
+    }
+    else if (TopCandidate_TagCat[i] == 1)
+    {
+      TagCat = "nonmatched";
+    }
+    else if (TopCandidate_TagCat[i] == 2)
+    {
+      TagCat = "other";
+    }
+  
+    
+    if(score >= wpTight)
+    {
+      wpTag   = "Tight";
+      channel = "pass";
+    }
+    else if(score < wpTight)
+    {
+      if(score >= wpLoose)
+      {
+        wpTag   = "LooseButNotTight";
+        channel = "pass";
+      }
+      else if(score < wpLoose)
+      {
+        wpTag   = "Loose";
+        channel = "fail";
+      }
+    }
+
+    // case a: all processes, pass and fail
+    weight  = trotaSF_corr->evaluate({TopCat, wpTag, TagCat, channel, "value", pt});
+    error   = trotaSF_corr->evaluate({TopCat, wpTag, TagCat, channel, "error", pt});
+
+    // case b: all processes, only pass
+    if (channel == "fail")
+    {
+      weight = 1.0;
+      error = 0.0;
+    }
+
+    // case c: only topmatched, pass and fail
+    // if (TagCat != "topmatched")
+    // {
+    //   weight = 1.0;
+    //   error = 0.0;
+    // }
+    
+    // case d: only topmatched, only pass
+    // if ((TagCat != "topmatched") || (channel == "fail"))
+    // {
+    //   weight = 1.0;
+    //   error = 0.0;
+    // }
+
+    weights_nominal.push_back(weight);
+    weights_up.push_back(weight + error);
+    weights_down.push_back(weight - error);
+    errors.push_back(error);
+  }
+  if (scenario == "nominal")
+  {
+    return weights_nominal;
+  }
+  else if (scenario == "up")
+  {
+    return weights_up;
+  }
+  else if (scenario == "down")
+  {
+    return weights_down;
+  }
+  else
+  {
+    std::cout << "WARNING: GetTrotaSF: unknown scenario '" << scenario
+              << "'. Returning nominal SFs." << std::endl;
+    return weights_nominal;
+  }
+}
+
+
+
+
+RVec<int> TopCandidates_NonOverlapping_AcrossTopCategories_idx(rvec_i TopIndependentCandidates_TopCategoryOne_idx, rvec_f TopCandidates_TopCategoryOne_eta, rvec_f TopCandidates_TopCategoryOne_phi, rvec_i TopIndependentCandidates_TopCategoryTwo_idx, rvec_f TopCandidates_TopCategoryTwo_eta, rvec_f TopCandidates_TopCategoryTwo_phi, float deltaR_thr)
+{
+  RVec<int> non_overlapping_idx;
+  for (int j = 0; j < TopIndependentCandidates_TopCategoryTwo_idx.size(); j++) // Example: loop over TopMerged independent candidates
+  {
+    int overlap_found = 0;
+    for (int i = 0; i < TopIndependentCandidates_TopCategoryOne_idx.size(); i++) // loop over TopMixed independent candidates
+    {
+      if (deltaR(TopCandidates_TopCategoryOne_eta[TopIndependentCandidates_TopCategoryOne_idx[i]],
+                 TopCandidates_TopCategoryOne_phi[TopIndependentCandidates_TopCategoryOne_idx[i]],
+                 TopCandidates_TopCategoryTwo_eta[TopIndependentCandidates_TopCategoryTwo_idx[j]],
+                 TopCandidates_TopCategoryTwo_phi[TopIndependentCandidates_TopCategoryTwo_idx[j]]) < deltaR_thr)
+      {
+        overlap_found = 1;
+        break; // if it overlaps, we do not consider it for the list of non-overlapping candidates
+      }
+    }
+    if (overlap_found == 0) // if it does not overlap with any of the TopMixed candidates, we can consider it for the list of non-overlapping candidates
+    {
+      non_overlapping_idx.push_back(TopIndependentCandidates_TopCategoryTwo_idx[j]);
+    }
+  }
+  return non_overlapping_idx;
+}
+
+
+
+////// Calculate the TrotaEventWeight for all 3 TopCategories together for each event based on the Trota SF of the selected top candidates in the event
+float CalculateTrotaEventWeight(rvec_f TopMerged_TrotaSF, rvec_f TopMixed_TrotaSF, rvec_f TopResolved_TrotaSF, rvec_i TopMerged_forEvWeight_idx, rvec_i TopMixed_forEvWeight_idx, rvec_i TopResolved_forEvWeight_idx)
+{
+  float weight = 1.0;
+  for (int i = 0; i < TopMerged_forEvWeight_idx.size(); i++)
+  {
+    weight *= TopMerged_TrotaSF[TopMerged_forEvWeight_idx[i]];
+  }
+  for (int i = 0; i < TopMixed_forEvWeight_idx.size(); i++)
+  {
+    weight *= TopMixed_TrotaSF[TopMixed_forEvWeight_idx[i]];
+  }
+  for (int i = 0; i < TopResolved_forEvWeight_idx.size(); i++)
+  {
+    weight *= TopResolved_TrotaSF[TopResolved_forEvWeight_idx[i]];
+  }
+  
+  return weight;
+}
+
+////// Calculate the TrotaEventWeight for a single TopCategory (Resolved, Mixed or Merged) for each event based on the Trota SF of the selected top candidates in the event
+float CalculateCategoryTrotaEventWeight(rvec_f TopCand_TrotaSF, rvec_i TopCand_forEvWeight_idx)
+{
+  float weight = 1.0;
+  for (int i = 0; i < TopCand_forEvWeight_idx.size(); i++)
+  {
+    weight *= TopCand_TrotaSF[TopCand_forEvWeight_idx[i]];
+  }
+  
+  return weight;
 }
