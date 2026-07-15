@@ -121,7 +121,7 @@ def configcreate(isMC=True, year=2022, EE=False, runPeriod="C", jetType="AK4PFPu
     tagver = versiontag[year_]
     print("tagver: ", tagver)
     if runPeriod != ".": 
-        if ("2022EE" in year_) or ("2023" in year_):
+        if ("2022EE" in year_) or ("2023" in year_) or ("2024" in year_):
             year_ += "_"+runPeriod
             print("year_ with runPeriod: ", year_)
     if (forMET or "AK4" in jetType):
