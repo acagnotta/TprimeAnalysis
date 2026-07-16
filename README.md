@@ -91,7 +91,7 @@ You can modify the settings in this file to customize the folder to save the plo
 - `plotting/systematics`: list of systematics to include in the stacks, per each era (if no systematics are needed, just leave the list empty - by default it will only draw statistical uncertainties);
 - `plotting/scale_signals`: factor to scale the signal samples in the stacks (set to 1 for no scaling).
 
-Here there is a template example of config.yaml file for the 2022 era:
+Here there is a template example of config.yaml file:
 ```yaml
 outputfolder:
   postselector_results: { 
