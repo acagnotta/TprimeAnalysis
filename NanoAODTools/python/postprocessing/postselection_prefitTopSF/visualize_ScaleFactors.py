@@ -1,0 +1,96 @@
+import json
+import argparse
+import ROOT
+import cmsstyle as CMS
+import os
+import shutil
+ROOT.gROOT.SetBatch()
+ROOT.gStyle.SetOptStat(0)
+
+usage   = "python3 visualize_ScaleFactors.py <json_file> --TopCategory <TopCategory> --wp_cat <wp_cat> --channel <channel> --output <output_name>"
+parser  = argparse.ArgumentParser()
+parser.add_argument("json_file")
+parser.add_argument("--TopCategory",    default="Mixed",    choices=["Resolved", "Mixed", "Merged"])
+parser.add_argument("--wp_cat",         default="Loose",    choices=["Loose", "Tight"])
+parser.add_argument("--channel",        default="pass",     choices=["pass", "fail"])
+parser.add_argument("--output",         default="sf_map")
+args = parser.parse_args()
+
+with open(args.json_file) as f:
+    data = json.load(f)
+if not os.path.exists(os.path.dirname(args.output)):
+    os.makedirs(os.path.dirname(args.output))
+if "www" in args.output:
+    shutil.copy("/eos/user/l/lfavilla/www/index.php", os.path.dirname(args.output))
+block = data[args.TopCategory][args.wp_cat]
+
+xlabels = ["[0,200[", "[200,400[", "[400,600[", "[600,1000)", "[0,400[", "[400,1000)"]
+matchings = ["topmatched", "nonmatched", "other"]
+ylabels = ["topmatched", "nonmatched", "other"]
+
+CMS.SetExtraText("Work in Progress")
+CMS.SetLumi("")
+c = CMS.cmsCanvas(
+    "c",
+    0, len(xlabels),
+    0, len(ylabels),
+    "",
+    "",
+    square=CMS.kRectangular,
+    iPos=0,
+    with_z_axis=True
+)
+c.SetLeftMargin(0.18)    # this is the main fix: your y labels are being cut
+c.SetRightMargin(0.16)   # leave room for the color palette
+c.SetBottomMargin(0.18)
+
+h = ROOT.TH2F("h", "", len(xlabels), 0, len(xlabels), len(ylabels), 0, len(ylabels))
+
+for ix, lab in enumerate(xlabels, start=1):
+    h.GetXaxis().SetBinLabel(ix, lab)
+
+for iy, lab in enumerate(ylabels, start=1):
+    h.GetYaxis().SetBinLabel(iy, lab)
+
+for iy, m in enumerate(matchings, start=1):
+    values = block[m][args.channel]["value"]
+    errors = block[m][args.channel]["error"]
+    for ix in range(4):
+        h.SetBinContent(ix + 1, iy, values[ix])
+
+h.SetMinimum(0.0)
+h.SetMaximum(2.0)
+
+h.GetXaxis().SetTitle("p_{T} [GeV]")
+h.GetXaxis().SetTitleOffset(1.3)
+h.GetXaxis().SetTitleSize(0.05)
+h.GetXaxis().SetLabelSize(0.045)
+
+h.GetYaxis().SetTitleOffset(1.4)
+h.GetYaxis().SetTitleSize(0.05)
+h.GetYaxis().SetLabelSize(0.045)
+
+h.GetZaxis().SetTitle("SF")
+h.GetZaxis().SetTitleSize(0.045)
+h.GetZaxis().SetLabelSize(0.045)
+
+c.cd()
+h.Draw("COLZ")
+
+latex = ROOT.TLatex()
+latex.SetTextAlign(22)
+latex.SetTextSize(0.020)
+
+for iy, m in enumerate(matchings, start=1):
+    values = block[m][args.channel]["value"]
+    errors = block[m][args.channel]["error"]
+    for ix in range(len(xlabels)):
+        if values[ix] == 9999.0:  # this is the dummy value we assigned for missing SFs
+            content = "N/A"
+        else:
+            content = f"{values[ix]:.3f} #pm {errors[ix]:.3f}"
+        latex.DrawLatex(ix + 0.5, iy - 0.5, content)
+
+CMS.UpdatePalettePosition(h, c)
+c.SaveAs(args.output + ".png")
+c.SaveAs(args.output + ".pdf")

@@ -3,9 +3,10 @@ import ROOT
 import os
 import sys
 sys.path.append('../')
-from make_stack import make_stack_with_ratio
+from plotting.make_stack import make_stack_with_ratio
 from samples.samples import *
-from variables import *
+# from variables import *
+from PhysicsTools.NanoAODTools.postprocessing.postselection_prefitTopSF.variables import *
 import copy
 import json
 import numpy as np
@@ -31,7 +32,8 @@ else:
 
 usage                   = 'python3 produce_stacks.py --year_tag <year_tag>'
 parser                  = optparse.OptionParser(usage)
-parser.add_option("--year_tag",          dest="year_tag",         help="Year tag: 2022, 2022EE, 2023, 2023postBPix, Full2022, Full2023, Full2022_Full2023",       type="string")
+parser.add_option("--year_tag",          dest="year_tag",         type="string",                                    help="Year tag: 2022, 2022EE, 2023, 2023postBPix, Full2022, Full2023, Full2022_Full2023")
+parser.add_option('--TopCategory',       dest='TopCategory',      type=str,               default="Mixed",          help='Top category for the histograms: Resolved, Mixed or Merged')
 (opt, args)             = parser.parse_args()
 ################## input parameters
 extraText                           = "Work in Progress"
@@ -41,6 +43,7 @@ cut                                 = requirements      # defined in variables.p
 blind                               = False             # Set to True if you want to blind the data
 scale_signals                       = config["plotting"]["scale_signals"]                # Scaling factor for the signals
 year_tag                            = opt.year_tag
+TopCategory                         = opt.TopCategory
 
 lumi_dict                           = config["plotting"]["lumi_dict"]
 lumi_dict["Full2022"]               = lumi_dict["2022"] + lumi_dict["2022EE"]
@@ -105,7 +108,7 @@ if scale_signals != 1:
             labels_dict[key] = labels_dict[key] + f" [x{scale_signals}]"
 
 
-
+regions_def     = regions[TopCategory]
 
 
 ############### SETTINGS ############### 
@@ -120,11 +123,22 @@ repostack       = folder+"stacks/"
 repostack_www   = folder_www+"stacks/"
 
 if not os.path.exists(folder):
-    os.makedirs(folder, exist_ok=True)
+    os.mkdir(folder)
+# if not os.path.exists(repostack):
+#     os.mkdir(repostack)
+#     print("Created folders 'stacks' at ", folder)
+# if not os.path.exists(repostack+"/png"):
+#     os.mkdir(repostack+"/png")
+# if not os.path.exists(repostack+"/pdf"):
+#     os.mkdir(repostack+"/pdf")
+# if not os.path.exists(repostack+"/C"):
+#     os.mkdir(repostack+"/C")
+
+
 if not os.path.exists(folder_www):
-    os.makedirs(folder_www, exist_ok=True)
+    os.mkdir(folder_www)
 if not os.path.exists(repostack_www):
-    os.makedirs(repostack_www, exist_ok=True)
+    os.mkdir(repostack_www)
     print("Created folder 'stacks' at ", folder_www)
 if not os.path.exists(folder_www+"index.php"):
     shutil.copy("/eos/user/l/lfavilla/www/index.php", folder_www)
@@ -155,7 +169,7 @@ print("blind            = {}".format(blind))
 
 ################# variables & regions definition --> defined in variables.py 
 print("Producing histos:  {}".format([v._name for v in vars[1:]]))
-print("Regions:           {}".format(regions.keys()))
+print("Regions:           {}".format(regions_def.keys()))
 
 ################### utils ###################
 def cut_string(cut):
@@ -198,19 +212,20 @@ for dat in datasets:
 
 ### rebinning for MT ###
 MT_T_xbins          = array.array('d', [500, 600, 700, 800, 1000, 1400, 2000])
-PuppiMET_pt_xbins   = array.array('d', [250, 300, 350, 400, 450, 500, 600, 850])
-
+# PuppiMET_pt_xbins   = array.array('d', [250, 300, 350, 400, 450, 500, 600, 850])
+# PuppiMET_pt_xbins   = array.array('d', [50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 850])
+# PuppiMET_pt_xbins   = array.array('d', list(range(50, 850, 50)))
 
 for v in vars:
 # for v in [var for var in vars if var._name == "MT_T"]:
 # for v in [var for var in vars if var._name == "PuppiMET_T1_pt_nominal"]:
 # for v in [var for var in vars if var._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]]:
 # for v in [var for var in vars if var._name in ["MT_T", "PuppiMET_T1_pt_nominal"]]:
-    for r in regions.keys():
+# for v in [var for var in vars if var._name == "MT_W"]:
+    for r in regions_def.keys():
     # for r in ["SRTop"]:
     # for r in ["AH"]:
-    # for r in ["SL"]:
-    # for r in ["SRTopLoose"]:
+    # for r in ["SemiLep_MixedLooseButNotTight_pt0to200_pass"]:
         ###############################################
         ############ PreProcess Histograms ############
         ############ normalization to Lumi ############
@@ -273,10 +288,10 @@ for v in vars:
                 tmp_                        = tmp.Rebin(len(MT_T_xbins)-1, histo_name+"_", MT_T_xbins)
                 tmp                         = copy.deepcopy(tmp_)
                 tmp.SetName(histo_name)
-            elif v._name == "PuppiMET_T1_pt_nominal":
-                tmp_                        = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
-                tmp                         = copy.deepcopy(tmp_)
-                tmp.SetName(histo_name)
+            # elif v._name == "PuppiMET_T1_pt_nominal":
+            #     tmp_                        = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
+            #     tmp                         = copy.deepcopy(tmp_)
+            #     tmp.SetName(histo_name)
             if len(samples[s.label][s.label]["ntot"]):
                 tmp.Scale(lumi)
             else:
@@ -300,10 +315,10 @@ for v in vars:
                     tmp_                    = tmp.Rebin(len(MT_T_xbins)-1, histo_name+"_", MT_T_xbins)
                     tmp                     = copy.deepcopy(tmp_)
                     tmp.SetName(histo_name)
-                elif v._name == "PuppiMET_T1_pt_nominal":
-                    tmp_                    = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
-                    tmp                     = copy.deepcopy(tmp_)
-                    tmp.SetName(histo_name)
+                # elif v._name == "PuppiMET_T1_pt_nominal":
+                #     tmp_                    = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
+                #     tmp                     = copy.deepcopy(tmp_)
+                #     tmp.SetName(histo_name)
                 if len(samples[s.label][s.label]["ntot"]):
                     tmp.Scale(lumi)
                 else:
@@ -365,10 +380,10 @@ for v in vars:
                         tmp_                        = tmp.Rebin(len(MT_T_xbins)-1, histo_name+"_", MT_T_xbins)
                         tmp                         = copy.deepcopy(tmp_)
                         tmp.SetName(histo_name)
-                    elif v._name == "PuppiMET_T1_pt_nominal":
-                        tmp_                        = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
-                        tmp                         = copy.deepcopy(tmp_)
-                        tmp.SetName(histo_name)
+                    # elif v._name == "PuppiMET_T1_pt_nominal":
+                    #     tmp_                        = tmp.Rebin(len(PuppiMET_pt_xbins)-1, histo_name+"_", PuppiMET_pt_xbins)
+                    #     tmp                         = copy.deepcopy(tmp_)
+                    #     tmp.SetName(histo_name)
                     if histo_data is None:
                         histo_data                  = copy.deepcopy(tmp)
                     else:
@@ -382,13 +397,14 @@ for v in vars:
 
         ##### Drawing Options ######
         if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop_nominal"]:
+        # if v._name in ["LeadingFatJetPt_msoftdrop", "FatJet_msoftdrop"]:
             # logy    = False
             logy    = False
         elif "SR" in r:
             # logy = False
-            logy    = True
+            logy    = False
         else:
-            logy    = True
+            logy    = False
 
         ##### X-axis ######
         xTitle              = v._title
