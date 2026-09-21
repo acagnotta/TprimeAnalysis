@@ -52,6 +52,8 @@ source standalone/env_standalone.sh
 
 ## Usage
 ### Step 0: env setup
+The following shell file prepares the environment after the installation has been completed, and has to be run every time before.
+>>IMPORTANT NOTE: you will need to have a file named analysis_TPrime.sh in your home repository in afs with this content. This is necessary in order to run the jobs on condor in the upcoming steps.
 ```bash
 # analysis_TPrime.sh 
 source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_107 x86_64-el9-gcc13-opt

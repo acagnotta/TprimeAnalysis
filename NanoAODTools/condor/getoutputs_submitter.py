@@ -9,7 +9,9 @@ from PhysicsTools.NanoAODTools.postprocessing.samples.samples import *
 parser          = argparse.ArgumentParser()
 parser.add_argument("-d",   "--datasets",      required=True,   help="Comma-separated list of datasets (can be either entire samples or single components)")
 parser.add_argument("-o",   "--output_json",   required=True,   help="Output JSON file name")
+parser.add_argument("--forced_path",  type=str, dest='forced_path', default='',   help="Force to run on a remote folder rather than your own remote user folder. Will not use local condor information. ")
 parser.add_argument('--tier', dest='tier', type=str, default = 'pisa', help='Please enter location where to write the output file (tier pisa or bari)')
+parser.add_argument("-n","--dryrun",action='store_true',dest='dryrun', default=False,help="Dry run, does not actually perform the action ")
 
 args            = parser.parse_args()
 output_json     = args.output_json
@@ -18,11 +20,18 @@ username        = str(os.environ.get('USER'))
 inituser        = str(os.environ.get('USER')[0])
 uid             = int(os.getuid())
 workdir         = "user" if "user" in os.environ.get('PWD') else "work"
+forced_path = args.forced_path
+doforcepath = (forced_path!="")
+dryrun=args.dryrun
 
 if not os.path.exists("/tmp/x509up_u" + str(uid)):
     print("Please run voms command")
     sys.exit()
-os.popen("cp /tmp/x509up_u" + str(uid) + " /afs/cern.ch/user/" + inituser + "/" + username + "/private/x509up")
+cert_loc_path="/afs/cern.ch/user/" + inituser + "/" + username + "/private/x509up"#+"_u"+str(uid)
+os.popen("cp /tmp/x509up_u" + str(uid) + " "+cert_loc_path)
+#os.popen("cp /tmp/x509up_u" + str(uid) + " /afs/cern.ch/user/" + inituser + "/" + username + "/private/x509up")
+#os.popen("chmod 400 "+cert_loc_path)
+print(cert_loc_path)
 
 # --------------------------------------------------
 # Get datasets
@@ -43,7 +52,7 @@ print([sample.label for sample in samples])
 
 def sub_writer(run_folder, log_folder, dataset):
     f = open(run_folder+"condor.sub", "w")
-    f.write("Proxy_filename          = x509up\n")
+    f.write("Proxy_filename          = x509up_u"+str(uid)+"\n")
     f.write("Proxy_path              = /afs/cern.ch/user/" + inituser + "/" + username + "/private/$(Proxy_filename)\n")
     f.write("universe                = vanilla\n")
     f.write("x509userproxy           = $(Proxy_path)\n")
@@ -67,7 +76,8 @@ def sub_writer(run_folder, log_folder, dataset):
 def runner_writer(run_folder, dataset, output_json):
     runner_path = os.path.join(run_folder, f"runner.sh")
     pycommand   = f"python3 getoutputs.py -d {dataset} -o {output_json} --tier {tier}"
-
+    if (doforcepath): pycommand =f"python3 getoutputs.py -d {dataset} -o {output_json} --tier {tier} --forced_path {forced_path}"
+    
     with open(runner_path, "w") as f:
         f.write("#!/usr/bin/bash\n\n")
         f.write("echo \"X509_USER_PROXY: ${X509_USER_PROXY}\"\n")
@@ -77,7 +87,8 @@ def runner_writer(run_folder, dataset, output_json):
         f.write('echo "Date: $(date)"\n')
         f.write(f'echo "Dataset: {dataset}"\n\n')
         f.write("cd /afs/cern.ch/user/" + inituser + "/" + username + "/\n")
-        f.write("source analysis_TPrime.sh\n")
+        #f.write("source analysis_TPrime.sh\n")
+        f.write("source setANRun3Workspace.sh\n")
         f.write("cd condor/\n\n")
         f.write('echo "Running command:"\n')
         f.write(f'echo "{pycommand}"\n\n')
@@ -114,6 +125,6 @@ for sample in samples:
 
     runner_writer(run_folder, sample.label, output_json)
     sub_writer(run_folder, log_folder, sample.label)
-    # if not dryrun:
-    #     os.popen("condor_submit " + run_folder + "condor.sub")
+#    if not dryrun:
+#        os.popen("condor_submit " + run_folder + "condor.sub")
     time.sleep(2)

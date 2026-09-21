@@ -4,8 +4,8 @@ import sys
 import time
 from PhysicsTools.NanoAODTools.postprocessing.samples.samples import *
 from PhysicsTools.NanoAODTools.postprocessing.get_file_fromdas import *
-from checkjobs import get_file_sizes, find_folder, check_status_submission
-from config import models # import machine learning models dictionary from config.py
+from checkjobs import get_file_sizes, find_folder, check_errors_fromcondor
+from config import models, name_main_folder # import machine learning models dictionary from config.py
 
 usage = 'python3 postproc_submitter.py -d dataset_name'
 parser = optparse.OptionParser(usage)
@@ -18,6 +18,9 @@ parser.add_option('-s', '--submit', dest='submit', action='store_true', default=
 parser.add_option('-r', '--resubmit', dest='resubmit', action='store_true', default=False, help='resubmit failed jobs')
 parser.add_option('--status', dest='status', action='store_true', default=False, help='check jobs status')
 parser.add_option('--delete', dest='delete_files', action='store_true', default=False, help='delete files from tier for jobs with davix errors during resubmission')
+parser.add_option('--setupfile', dest='setupfile', type=str, default = 'analysis_Tprime.sh', help='Name of the setup file for the analysis environment')
+parser.add_option('--modelfolder', dest='modelfolder', type=str, default = '', help='Home folder for the .h5 keras TROTA models (check config.py for exact structure) ')
+
 (opt, args) = parser.parse_args()
 debug = opt.debug 
 submit = opt.submit
@@ -26,13 +29,13 @@ status = opt.status
 calculate_systematics = opt.syst
 where_to_write = opt.tier
 delete_files = opt.delete_files
+setupfile = opt.setupfile
+modelfolder = None if opt.modelfolder=='' else opt.modelfolder
 
 if where_to_write.lower() =='pisa':
     redirector = "davs://stwebdav.pi.infn.it:8443/cms"
 elif where_to_write.lower() =='bari':
     redirector = "davs://webdav.recas.ba.infn.it:8443/cms"
-elif where_to_write.lower() == 'legnaro':
-    redirector = "davs://t2-xrdcms.lnl.infn.it:2880/pnfs/lnl.infn.it/data/cms"
 else:
     print("Please select a valid tier (pisa or bari) OTHERWISE add the correct redirector in the code")
     exit()
@@ -58,10 +61,10 @@ remote_folder_name = "Run3Analysis_Tprime"
 print("\033[92m\n\n######################## POSTPROC SUBMITTER ########################\033[0m")
 print("Launching crab script for dataset: ", opt.dat)
 
-if submit:
-    print("\nRemote folder name (tier): ", remote_folder_name)
-    if not debug: os.popen("davix-mkdir {}/store/user/{}/{}/ -E /tmp/x509up_u{} --capath /cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/".format(redirector, username, remote_folder_name, str(uid)))
-    print("          {}/store/user/{}/{} CREATED".format(redirector, username, remote_folder_name))
+#if submit:
+#    print("\nRemote folder name (tier): ", remote_folder_name)
+    #if not debug: os.popen("davix-mkdir {}/store/user/{}/{}/ -E /tmp/x509up_u{} --capath /cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/".format(redirector, username, remote_folder_name, str(uid)))
+#    print("          {}/store/user/{}/{} CREATED".format(redirector, username, remote_folder_name))
 
 def write_crab_script(sample, file, modules, run_folder, calculate_systematics, year, debug):
     f = open(run_folder+"/crab_script.py", "w")
@@ -120,10 +123,11 @@ def write_crab_script(sample, file, modules, run_folder, calculate_systematics, 
     else:
         extra_str=""
     if isMC:
-        f.write(f"p=PostProcessor('.', ['root://cms-xrd-global.cern.ch/{file}'], '', modules=[{modules}], provenance=True, haddFileName='tree.root', fwkJobReport=False, histFileName='hist.root', histDirName='plots', outputbranchsel='/afs/cern.ch/{workdir}/{inituser}/{username}/{name_main_folder}/NanoAODTools/scripts/keep_and_drop.txt'{extra_str})\n")# haddFileName='"+sample.label+".root'
+        path_keep_and_drop=os.environ.get('PWD').replace("condor","scripts")
+        f.write(f"p=PostProcessor('.', ['root://cms-xrd-global.cern.ch/{file}'], '', modules=[{modules}], provenance=True, haddFileName='tree.root', fwkJobReport=False, histFileName='hist.root', histDirName='plots', outputbranchsel='{path_keep_and_drop}/keep_and_drop.txt'{extra_str})\n")# haddFileName='"+sample.label+".root'
 
     else:
-        f.write(f"p=PostProcessor('.', ['root://cms-xrd-global.cern.ch/{file}'], '', modules=[{modules}], provenance=True, haddFileName='tree.root', fwkJobReport=False, histFileName='hist.root', histDirName='plots', outputbranchsel='/afs/cern.ch/{workdir}/{inituser}/{username}/{name_main_folder}/NanoAODTools/scripts/keep_and_drop.txt'{extra_str})\n")#
+        f.write(f"p=PostProcessor('.', ['root://cms-xrd-global.cern.ch/{file}'], '', modules=[{modules}], provenance=True, haddFileName='tree.root', fwkJobReport=False, histFileName='hist.root', histDirName='plots', outputbranchsel='{path_keep_and_drop}/keep_and_drop.txt'{extra_str})\n")#
 
     f.write("p.run()\n")
     f.write("print('DONE')\n")
@@ -140,8 +144,8 @@ def sub_writer(run_folder, log_folder, label, sample_label):
     # f.write("when_to_transfer_output = ON_EXIT\n")
     f.write("transfer_input_files    = $(Proxy_path)\n")
     #f.write("transfer_output_remaps  = \""+outname+"_Skim.root=root://eosuser.cern.ch///eos/user/"+inituser + "/" + username+"/DarkMatter/topcandidate_file/"+dat_name+"_Skim.root\"\n")
-    f.write("+JobFlavour             = \"nextweek\"\n") # options are espresso = 20 minutes, microcentury = 1 hour, longlunch = 2 hours, workday = 8 hours, tomorrow = 1 day, testmatch = 3 days, nextweek     = 1 week
-    f.write('+JobTag                 = "'+label+'"\n')
+    f.write("+JobFlavour             = \"testmatch\"\n") # options are espresso = 20 minutes, microcentury = 1 hour, longlunch = 2 hours, workday = 8 hours, tomorrow = 1 day, testmatch = 3 days, nextweek     = 1 week
+    f.write("+JobTag                 = "+sample_label+"_"+label+"\n")
     f.write("executable              = "+run_folder+"/runner.sh\n")
     f.write("arguments               = $(Proxy_path)\n")
     #f.write("input                   = input.txt\n")
@@ -151,11 +155,11 @@ def sub_writer(run_folder, log_folder, label, sample_label):
     f.write("queue\n")
     f.close()
 
-def runner_writer(folder, i, remote_folder_name, sample_folder, launchtime, outfolder):
+def runner_writer(folder, i, setupfile, remote_folder_name, sample_folder, launchtime, outfolder):
     f = open(folder+"/runner.sh", "w")
     f.write("#!/bin/bash\n")
     f.write("cd /afs/cern.ch/user/" + inituser + "/" + username + "/\n")
-    f.write("source analysis_TPrime.sh\n")
+    f.write("source "+setupfile+".sh\n")
     f.write("mkdir -p "+outfolder+"\n")
     f.write("cd "+outfolder+"\n")
     f.write("pwd\n")
@@ -237,6 +241,11 @@ if submit:
 
         modelMix_path = models["TopMixed_"+str(sample.year)]
         modelRes_path = models["TopResolved_"+str(sample.year)]
+        
+        if(modelfolder is not None):
+            modelMix_path.replace(name_main_folder, modelfolder)
+            modelRes_path.replace(name_main_folder, modelfolder)
+            
         if isMC:
             if sample.year == 2018:
                 modules = "MCweight_writer(), MET_Filter(year = "+str(sample.year)+"), preselection(), GenPart_MomFirstCp(flavour='-5,-4,-3,-2,-1,1,2,3,4,5,6,-6,24,-24'), nanoprepro(),nanoTopcand(isMC=1), globalvar(), nanoTopevaluate_MultiScore(year = "+str(sample.year)+", modelMix_path='"+modelMix_path+"', modelRes_path='"+modelRes_path+"')"
@@ -295,7 +304,7 @@ if submit:
             if not os.path.exists(running_subfolder_file):
                 os.makedirs(running_subfolder_file)
             write_crab_script(sample, f, modules, running_subfolder_file, calculate_systematics, sample.year, debug)
-            runner_writer(running_subfolder_file, i, remote_folder_name, sample_folder, launchtime, outfolder_crabscript_i)
+            runner_writer(running_subfolder_file, i, setupfile, remote_folder_name, sample_folder, launchtime, outfolder_crabscript_i)
             sub_writer(running_subfolder_file, running_subfolder+"/condor", sample.label+"_file"+str(i), sample.label)
             if not debug :
                 out = os.popen("condor_submit " + running_subfolder_file + "/condor.sub")
@@ -305,32 +314,13 @@ if submit:
         print("\033[92mSUBMITTED\033[0m", sample.label)
         print("##########################################################################\n")
 
-
-if status: 
-    print("\n################################################ STATUS mode")
-    
-    for sample in samples:
-        print(f"Sample: {sample.label}")
-        listoffile = os.listdir(running_folder+"/"+sample.label)
-        jobs_total = 0 
-        for f in listoffile: 
-            if f.startswith("file"):
-                n = int(f.split("file")[-1])
-                if n>jobs_total: jobs_total = n
-        jobs_total += 1
-        print(f"Total number of jobs:               {jobs_total}")
-        check_status_submission(sample.label,username, uid, remote_folder_name, redirector,jobs_total, resubmit = False)
-        files = get_files_string(sample)
-        # print(len(files))
-        if len(files)!=jobs_total:
-            print("\n############## ATTENTION NOT ALL JOB SUBMITTED!")
-
 if resubmit:
-    print("\n################################################ RESUBMIT mode")
-    
+    print("\n################################################ RESUBMITTING mode")
     for sample in samples:
-        print(f"Sample: {sample.label}")
+        print("Sample: ", sample.label)
         listoffile = os.listdir(running_folder+"/"+sample.label)
+
+        # check number of total number of files that should have been created
         jobs_total = 0 
         for f in listoffile: 
             if f.startswith("file"):
@@ -338,4 +328,83 @@ if resubmit:
                 if n>jobs_total: jobs_total = n
         jobs_total += 1
         print(f"Total number of jobs:               {jobs_total}")
-        check_status_submission(sample.label,username, uid, remote_folder_name, redirector,jobs_total, resubmit = True)
+
+
+        # check number of files that have been actually created
+        davixfolder                     = find_folder(redirector, username, remote_folder_name, sample.label, "/tmp/x509up_u"+str(uid), "/cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/")
+        file_sizes                      = get_file_sizes(davixfolder, "/tmp/x509up_u"+str(uid), "/cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/")
+        total_files_onTier              = len(file_sizes)
+        fileNumbers_onTier              = [int(file_name.split("_")[-1].split(".")[0]) for file_name, file_size in file_sizes.items()]
+        print(f"Total files found on tier:          {total_files_onTier}")    
+        njobs_toResubmit     = 0
+        njobs_notFoundOnTier = 0
+        njobs_emptyFile      = 0
+        for jobNumber in range(jobs_total):
+            resubmit_job     = False
+            file_name        = f"tree_hadd_{jobNumber}.root"
+            if jobNumber not in fileNumbers_onTier:
+                print(f"Job {jobNumber} not found on tier")
+                njobs_notFoundOnTier            += 1
+                njobs_toResubmit                += 1
+                resubmit_job                     = True
+            else:
+                file_size = file_sizes[file_name]
+                if file_size < 1000:
+                    print(f"File: {file_name}, Size: {file_size} bytes")
+                    njobs_emptyFile             += 1
+                    njobs_toResubmit            += 1
+                    resubmit_job                 = True
+
+            if resubmit_job:
+                file_num            = str(jobNumber)
+                sample_folder       = running_folder+"/"+sample.label+"/file"+file_num+"/"
+                print("Removing empty file from tier...  "+file_name)
+                print("davix-rm "+davixfolder+"/"+file_name+" -E /tmp/x509up_u"+str(uid)+" --capath /cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/")
+                os.popen("davix-rm "+davixfolder+"/"+file_name+" -E /tmp/x509up_u"+str(uid)+" --capath /cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/")
+                print("Resubmitting...")
+                print("condor_submit "+sample_folder+"condor.sub")
+                os.popen("condor_submit "+sample_folder+"/condor.sub")
+                print("\n")
+
+        print(f"Number of jobs to resubmit:         {njobs_toResubmit}")
+        print(f"Number of jobs not found on tier:   {njobs_notFoundOnTier}")
+        print(f"Number of empty files:              {njobs_emptyFile}")
+        print("\n")
+        print("#######################################################################################")
+        print("Resubmitting jobs that have errors according to condor logs")
+        print("#######################################################################################\n")
+        check_errors_fromcondor(sample.label, username, uid, remote_folder_name, redirector, resubmit=True, delete_files_fromtier=False)
+
+if status:
+    print("\n################################################ STATUS mode")
+    print("Do NOT resubmit jobs before they're finished")
+    for sample in samples:
+        davixfolder = find_folder(redirector, username, remote_folder_name, sample.label, "/tmp/x509up_u"+str(uid), "/cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/")
+        file_sizes = get_file_sizes(davixfolder, "/tmp/x509up_u"+str(uid), "/cvmfs/cms.cern.ch/grid/etc/grid-security/certificates/")
+        print("Checking status for empty files in ", sample.label)
+        print("Tier folder: ", davixfolder)
+        job_failed = 0
+        job_success = 0
+        print(running_folder+"/"+sample.label)
+        listoffile = os.listdir(running_folder+"/"+sample.label)
+        jobs_total = 0 
+        for f in listoffile: 
+            if f.startswith("file"):
+                n = int(f.split("file")[-1])
+                if n>jobs_total: jobs_total = n
+        jobs_total += 1
+        for file_name, file_size in file_sizes.items():
+            if file_size <1000:
+                print(f"File: {file_name}, Size: {file_size} bytes")
+                job_failed += 1
+            else:
+                job_success += 1
+        
+        print("--------------------------------------------------------------------------------\n")
+        print("dataset: ", sample.label)
+        print("Total jobs: ", jobs_total)
+        print("\033[91mJobs failed: {} ({:.2f}%)\033[0m".format(job_failed, (job_failed/jobs_total)*100))
+        print("\033[92mJobs succeeded: {} ({:.2f}%)\033[0m\n".format(job_success, (job_success/jobs_total)*100))
+        print("running jobs: {} ({:.2f}%)\n".format(jobs_total-(job_failed+job_success), ((jobs_total-(job_failed+job_success))/jobs_total)*100))
+        check_errors_fromcondor(sample.label, username, uid, remote_folder_name, redirector, resubmit=False, delete_files_fromtier=delete_files)
+        print("\n--------------------------------------------------------------------------------")
