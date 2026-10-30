@@ -23,7 +23,7 @@ parser.add_option(      '--noPuWeight',             dest='noPuWeight',          
 parser.add_option(      '--noTopPtWeight',          dest='noTopPtWeight',       action='store_true',    default = False,                                        help='remove top pt weight')
 parser.add_option(      '--noTrotaSF',              dest='noTrotaSF',           action='store_true',    default = False,                                        help='remove Trota SF')
 parser.add_option(      '--printcutflow',           dest='printcutflow',        action='store_true',    default = False,                                        help='print cutflow')
-
+parser.add_option(      '--varfile',                dest='varfile',             type=str,               default="../variables.py",                      help='Path to the variable file')
 parser.add_option( '-m',     '--mode',           dest='mode',        type=str ,  default = "s",                 help='modes: s = submit, c = check failed, r = resubmit failed, h = add histograms  ')
 
 parser.add_option('--config_paths', dest='config_paths', type=str, default = None, help='config file path ')
@@ -47,6 +47,7 @@ noPuWeight          = opt.noPuWeight
 noTopPtWeight       = opt.noTopPtWeight
 noTrotaSF           = opt.noTrotaSF
 printcutflow        = opt.printcutflow
+variables_opt        = "--varfile "+opt.varfile  
 njobs_per_part      = opt.partsize
 suffix              = f"_{opt.suffix}" if opt.suffix is not None else ""
 mode = opt.mode
@@ -147,6 +148,7 @@ def runner_writer(run_folder, dataset, dict_samples_file, hist_folder, nfiles_ma
         + f"--hist_folder {hist_folder} "
         + f"--nfiles_max {nfiles_max} "
         + f"{parts} "
+        + f"{variables_opt} "
         + "--tmpfold"
     )
 
@@ -326,11 +328,22 @@ def checkJobHasFailed(condorFolder, sampleLabel, dataset, verbose=0): #returns t
     return False
 
 #outFolder_path      = config["outputfolder"]["postselector_results"][period]
-def histoMergeWriter(outpath, mergepath, sampleLabel):
+def histoMergeWriter(outpath, mergepath, sampleLabel, uname=username):
     if not os.path.exists(mergepath):
         print (" warning, merge path: "+mergepath+" did not exist at time of adding histos, creating it on the fly.")
         os.makedirs(mergepath)
     commandHadd = "hadd -f "+mergepath+"/"+sampleLabel+".root " + outpath+"/"+sampleLabel+"_part*.root" 
+    #print(f"old commandHadd: {commandHadd}")
+    tmpdirin=f"/tmp/{uname}/tomerge/{sampleLabel}"
+    tmpdirout=f"/tmp/{uname}/merged/{sampleLabel}"
+    commandHadd=""
+    if not os.path.exists(tmpdirin):
+        commandHadd= commandHadd+f"mkdir -p {tmpdirin}; "
+    if not os.path.exists(tmpdirout):
+        commandHadd= commandHadd+f"mkdir -p {tmpdirout}; "
+    commandHadd =commandHadd + f"cp {outpath}/{sampleLabel}_part*.root {tmpdirin}/; hadd -f {tmpdirout}/{sampleLabel}.root {tmpdirin}/{sampleLabel}_part*.root; "
+    commandHadd =commandHadd + f"cp {tmpdirout}/{sampleLabel}.root {mergepath}/ "
+    #print(f"new commandHadd: {commandHadd}")
     return commandHadd
     
 if not os.path.exists("/tmp/x509up_u" + str(uid)):
@@ -368,19 +381,23 @@ for d in dss:
 
         print("Samples to run: ", [s.label for s in samples])
 
-        
+    nparallel_adds=10
+    nadds=0
     for sample in samples:
         nsplit,lastpartsize = sampleSplitter(samplesfile,sample.label,dat,njobs_per_part) 
         if mode == "h":
+            extrapart=" & "
+            nadds+=1
+            if(nadds%nparallel_adds==0):extrapart=""
             if nsplit>1:
-                hcommand = histoMergeWriter(outFolder_path+"/plots", mergeFolder_path+"/plots", sample.label)
+                hcommand = histoMergeWriter(outFolder_path+"/plots", mergeFolder_path+"/plots", sample.label)+extrapart
                 print (" histomerge command is \n", hcommand)
                 if not dryrun:
                     os.system(hcommand)
                     time.sleep(3)
                     continue
             if nsplit==1:
-                cpcommand= "cp "+outFolder_path+"/plots/"+sample.label+".root " + mergeFolder_path+"/plots/"+sample.label+".root"
+                cpcommand= "cp "+outFolder_path+"/plots/"+sample.label+".root " + mergeFolder_path+"/plots/"+sample.label+".root"+extrapart
                 print (" histomerge copy command is \n", cpcommand)
                 if not dryrun:
                     os.system(cpcommand)
